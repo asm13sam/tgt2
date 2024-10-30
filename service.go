@@ -28,19 +28,20 @@ func DbClose() error {
 }
 
 func testForExistingTable(tableName string) bool {
-	for _, f := range existingTables {
-		if tableName == f {
-			return true
-		}
-	}
-	return false
+	_, ok := tablesColumns1[tableName]
+	return ok
+}
+
+func testForExistingColumn(tableName, columnName string) bool {
+	_, ok := tablesColumns1[tableName][columnName]
+	return ok
 }
 
 func makeSql(tableName, operator string, params ...string) (string, error) {
 	var res string
 	var err error
 	if !testForExistingTable(tableName) {
-		return res, fmt.Errorf("table %s is not exist", tableName)
+		return res, fmt.Errorf("table %s does not exist", tableName)
 	}
 	switch operator {
 	case "by_id":
@@ -48,9 +49,16 @@ func makeSql(tableName, operator string, params ...string) (string, error) {
 	case "all":
 		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1", tableName)
 	case "filter":
-		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1 AND %s %s ?", tableName, params[0], operands[params[1]])
+		op, ok := operands[params[1]]
+		if !ok {
+			return res, fmt.Errorf("operand '%s' does not exist", params[1])
+		}
+		if !testForExistingColumn(tableName, params[0]) {
+			return res, fmt.Errorf("column '%s' in table '%s' does not exist", params[0], tableName)
+		}
+		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1 AND %s %s ?", tableName, params[0], op)
 	default:
-		err = fmt.Errorf("operator %s is not exist", operator)
+		err = fmt.Errorf("operator %s does not exist", operator)
 	}
 	return res, err
 }

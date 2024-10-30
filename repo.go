@@ -66,6 +66,9 @@ func GetFilter(tableName, filterColumn, operator, value string) (string, error) 
 		}
 		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder))
 	}
+	if len(jsMaps) < 3 {
+		return "[]", nil
+	}
 	jsList := fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
 	return jsList, nil
 }

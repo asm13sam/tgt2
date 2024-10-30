@@ -1,7 +1,6 @@
 package main
 
 var (
-	existingTables   []string
 	tablesColumnsNum map[string]int
 	tablesColumns    map[string][]TableColumn
 	tablesColumns1   map[string](map[string]TableColumn)
@@ -28,7 +27,6 @@ type TableColumn struct {
 }
 
 func readConfig() {
-	existingTables = []string{"measure", "matherial_group", "matherial"}
 	tablesColumnsNum = map[string]int{"measure": 4, "matherial_group": 5, "matherial": 12}
 	tablesColumns = map[string][]TableColumn{
 		"measure": {TableColumn{"id", INT}, TableColumn{"name", STRING},
