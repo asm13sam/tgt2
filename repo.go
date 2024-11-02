@@ -6,19 +6,34 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func GetItem(tableName string, id int) (string, error) {
-	sel, err := makeSql(tableName, "by_id")
+func GetItemRaw(tableName string, id int) (string, error) {
+	sql, err := makeGetItemSqlRaw(tableName)
 	if err != nil {
 		return "", err
 	}
 	holder := makeHolder(tablesColumnsNum[tableName])
-
-	row := db.QueryRow(sel, id)
+	row := db.QueryRow(sql, id)
 	err = row.Scan(holder...)
 	if err != nil {
 		return "", err
 	}
-	jsMap := makeJsonMap(tableName, holder)
+	jsMap := makeJsonMap(tableName, holder, "raw")
+	return jsMap, nil
+}
+
+func GetItem(tableName string, id int) (string, error) {
+	sql, addNum, err := makeGetItemSql(tableName)
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(">>>>>>>", sql)
+	holder := makeHolder(tablesColumnsNum[tableName] + addNum)
+	row := db.QueryRow(sql, id)
+	err = row.Scan(holder...)
+	if err != nil {
+		return "", err
+	}
+	jsMap := makeJsonMap(tableName, holder, "")
 	return jsMap, nil
 }
 
@@ -40,7 +55,7 @@ func GetItems(tableName string) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder))
+		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder, "raw"))
 	}
 	jsList := fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
 	return jsList, nil
@@ -53,7 +68,7 @@ func GetFilter(tableName, filterColumn, operator, value string) (string, error) 
 	}
 
 	holder := makeHolder(tablesColumnsNum[tableName])
-	rows, err := query(tablesColumns1[tableName][filterColumn].ctype, value, sel)
+	rows, err := query(tablesColumnsRawMap[tableName][filterColumn].ctype, value, sel)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +79,7 @@ func GetFilter(tableName, filterColumn, operator, value string) (string, error) 
 		if err != nil {
 			return "", err
 		}
-		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder))
+		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder, "raw"))
 	}
 	if len(jsMaps) < 3 {
 		return "[]", nil

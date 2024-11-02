@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"strconv"
+	"strings"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -27,40 +28,66 @@ func DbClose() error {
 	return db.Close()
 }
 
-func testForExistingTable(tableName string) bool {
-	_, ok := tablesColumns1[tableName]
-	return ok
+func testForExistingTable(tableName string) error {
+	if _, ok := tablesColumnsRawMap[tableName]; !ok {
+		return fmt.Errorf("table %s does not exist", tableName)
+	}
+	return nil
 }
 
-func testForExistingColumn(tableName, columnName string) bool {
-	_, ok := tablesColumns1[tableName][columnName]
-	return ok
+func testForExistingColumn(tableName, columnName string) error {
+	if _, ok := tablesColumnsRawMap[tableName][columnName]; !ok {
+		return fmt.Errorf("column '%s' in table '%s' does not exist", columnName, tableName)
+	}
+	return nil
 }
 
-func makeSql(tableName, operator string, params ...string) (string, error) {
-	var res string
-	var err error
-	if !testForExistingTable(tableName) {
-		return res, fmt.Errorf("table %s does not exist", tableName)
+func makeGetItemSqlRaw(tableName string) (string, error) {
+	if err := testForExistingTable(tableName); err != nil {
+		return "", err
 	}
-	switch operator {
-	case "by_id":
-		res = fmt.Sprintf("SELECT * FROM %s WHERE id=?", tableName)
-	case "all":
-		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1", tableName)
-	case "filter":
-		op, ok := operands[params[1]]
-		if !ok {
-			return res, fmt.Errorf("operand '%s' does not exist", params[1])
-		}
-		if !testForExistingColumn(tableName, params[0]) {
-			return res, fmt.Errorf("column '%s' in table '%s' does not exist", params[0], tableName)
-		}
-		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1 AND %s %s ?", tableName, params[0], op)
-	default:
-		err = fmt.Errorf("operator %s does not exist", operator)
+	return fmt.Sprintf("SELECT * FROM %s WHERE id=?", tableName), nil
+}
+
+func makeGetItemSql(tableName string) (string, int, error) {
+	if err := testForExistingTable(tableName); err != nil {
+		return "", 0, err
 	}
-	return res, err
+	sels, joins, addNum := makeAddJoins(tableName)
+	sql := fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.id=?",
+		tableName, sels, tableName, joins, tableName)
+	return sql, addNum, nil
+}
+
+func makeAddJoins(table string) (addSelect, addJoins string, addNum int) {
+	for _, col := range tablesColumnsRaw[table] {
+		joinTable, ok := strings.CutSuffix(col.cname, "_id")
+		if ok {
+			addNum++
+			origTable, ok := strings.CutSuffix(joinTable, "2")
+			if ok {
+				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, joinTable)
+				addJoins += fmt.Sprintf(
+					` LEFT JOIN %s AS %s ON %s.%s = %s.id`,
+					origTable, joinTable, table, col.cname, joinTable,
+				)
+			} else if joinTable == table {
+				jtShort := joinTable[:2]
+				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, jtShort)
+				addJoins += fmt.Sprintf(
+					` LEFT JOIN %s AS %s ON %s.%s = %s.id`,
+					joinTable, jtShort, table, col.cname, jtShort,
+				)
+			} else {
+				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, joinTable)
+				addJoins += fmt.Sprintf(
+					` LEFT JOIN %s ON %s.%s = %s.id`,
+					joinTable, table, col.cname, joinTable,
+				)
+			}
+		}
+	}
+	return
 }
 
 func makeHolder(number int) []interface{} {
@@ -72,11 +99,44 @@ func makeHolder(number int) []interface{} {
 	return m
 }
 
-func makeJsonMap(tableName string, holder []interface{}) string {
-	js := ""
+// =====================
+func makeSql(tableName, operator string, params ...string) (string, error) {
+	var res string
+	var err error
+	if err = testForExistingTable(tableName); err != nil {
+		return res, err
+	}
+	switch operator {
+	case "all":
+		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1", tableName)
+	case "filter":
+		op, ok := operands[params[1]]
+		if !ok {
+			return res, fmt.Errorf("operand '%s' does not exist", params[1])
+		}
+		if err = testForExistingColumn(tableName, params[0]); err != nil {
+			return res, err
+		}
+		res = fmt.Sprintf("SELECT * FROM %s WHERE is_active=1 AND %s %s ?", tableName, params[0], op)
+	default:
+		err = fmt.Errorf("operator %s does not exist", operator)
+	}
+	fmt.Println(res)
+	return res, err
+}
+
+func makeJsonMap(tableName string, holder []interface{}, mode string) string {
+	var js string
+	var t int
+	columns := tablesColumns[tableName]
+	if mode == "raw" {
+		columns = tablesColumnsRaw[tableName]
+	}
+
 	for i, s := range holder {
 		v := *s.(*string)
-		t := tablesColumns[tableName][i].ctype
+		t = columns[i].ctype
+
 		if t == BOOL {
 			if v == "0" {
 				v = "false"
@@ -84,7 +144,7 @@ func makeJsonMap(tableName string, holder []interface{}) string {
 				v = "true"
 			}
 		}
-		js += fmt.Sprintf(typesTemplates[t], tablesColumns[tableName][i].cname, v)
+		js += fmt.Sprintf(typesTemplates[t], columns[i].cname, v)
 	}
 	return fmt.Sprintf("{\n%s\n}", js[:len(js)-2])
 }
