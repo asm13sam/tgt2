@@ -33,7 +33,14 @@ func getItemHandler(w http.ResponseWriter, r *http.Request) {
 		Respond(w, http.StatusBadRequest, makeError(err, "Invalid ID"))
 		return
 	}
-	res, err := GetItem(params["table"], id)
+	mode := r.URL.Query().Get("mode")
+	var res string
+	switch mode {
+	case "raw":
+		res, err = GetItemRaw(params["table"], id)
+	default:
+		res, err = GetItem(params["table"], id)
+	}
 	if err != nil {
 		Respond(w, http.StatusInternalServerError, makeError(err, "Record not found"))
 		return

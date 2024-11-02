@@ -1,9 +1,10 @@
 package main
 
 var (
-	tablesColumnsNum map[string]int
-	tablesColumns    map[string][]TableColumn
-	tablesColumns1   map[string](map[string]TableColumn)
+	tablesColumnsNum    map[string]int
+	tablesColumns       map[string][]TableColumn
+	tablesColumnsRaw    map[string][]TableColumn
+	tablesColumnsRawMap map[string](map[string]TableColumn)
 )
 
 var typesTemplates = []string{
@@ -28,18 +29,35 @@ type TableColumn struct {
 
 func readConfig() {
 	tablesColumnsNum = map[string]int{"measure": 4, "matherial_group": 5, "matherial": 12}
-	tablesColumns = map[string][]TableColumn{
-		"measure": {TableColumn{"id", INT}, TableColumn{"name", STRING},
-			TableColumn{"full_name", STRING}, TableColumn{"is_active", BOOL}},
-		"matherial_group": {TableColumn{"id", INT}, TableColumn{"name", STRING},
-			TableColumn{"matherial_group_id", INT}, TableColumn{"is_active", BOOL}},
-		"matherial": {TableColumn{"id", INT}, TableColumn{"name", STRING}, TableColumn{"full_name", STRING},
-			TableColumn{"matherial_group_id", INT}, TableColumn{"measure_id", INT},
-			TableColumn{"color_group_id", INT}, TableColumn{"price", FLOAT},
-			TableColumn{"cost", FLOAT}, TableColumn{"total", FLOAT},
-			TableColumn{"barcode", STRING}, TableColumn{"count_type_id", INT}, TableColumn{"is_active", BOOL}},
+	tablesColumnsRaw = map[string][]TableColumn{
+		"measure": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"full_name", STRING},
+			TableColumn{"is_active", BOOL},
+		},
+		"matherial_group": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"matherial_group_id", INT},
+			TableColumn{"position", INT},
+			TableColumn{"is_active", BOOL},
+		},
+		"matherial": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"full_name", STRING},
+			TableColumn{"matherial_group_id", INT},
+			TableColumn{"measure_id", INT},
+			TableColumn{"color_group_id", INT},
+			TableColumn{"price", FLOAT},
+			TableColumn{"cost", FLOAT},
+			TableColumn{"total", FLOAT},
+			TableColumn{"barcode", STRING},
+			TableColumn{"count_type_id", INT},
+			TableColumn{"is_active", BOOL}},
 	}
-	tablesColumns1 = map[string](map[string]TableColumn){
+	tablesColumnsRawMap = map[string](map[string]TableColumn){
 		"measure": {
 			"id":        TableColumn{"id", INT},
 			"name":      TableColumn{"name", STRING},
@@ -50,6 +68,7 @@ func readConfig() {
 			"id":                 TableColumn{"id", INT},
 			"name":               TableColumn{"name", STRING},
 			"matherial_group_id": TableColumn{"matherial_group_id", INT},
+			"position":           TableColumn{"position", INT},
 			"is_active":          TableColumn{"is_active", BOOL},
 		},
 		"matherial": {
@@ -65,5 +84,39 @@ func readConfig() {
 			"barcode":            TableColumn{"barcode", STRING},
 			"count_type_id":      TableColumn{"count_type_id", INT},
 			"is_active":          TableColumn{"is_active", BOOL}},
+	}
+
+	tablesColumns = map[string][]TableColumn{
+		"measure": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"full_name", STRING},
+			TableColumn{"is_active", BOOL}},
+		"matherial_group": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"matherial_group_id", INT},
+			TableColumn{"position", INT},
+			TableColumn{"is_active", BOOL},
+			TableColumn{"matherial_group", STRING},
+		},
+		"matherial": {
+			TableColumn{"id", INT},
+			TableColumn{"name", STRING},
+			TableColumn{"full_name", STRING},
+			TableColumn{"matherial_group_id", INT},
+			TableColumn{"measure_id", INT},
+			TableColumn{"color_group_id", INT},
+			TableColumn{"price", FLOAT},
+			TableColumn{"cost", FLOAT},
+			TableColumn{"total", FLOAT},
+			TableColumn{"barcode", STRING},
+			TableColumn{"count_type_id", INT},
+			TableColumn{"is_active", BOOL},
+			TableColumn{"matherial_group", STRING},
+			TableColumn{"measure", STRING},
+			TableColumn{"color_group", STRING},
+			TableColumn{"count_type", STRING},
+		},
 	}
 }
