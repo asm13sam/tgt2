@@ -14,7 +14,7 @@ var typesTemplates = []string{
 	"\t\"%s\": %s,\n",
 }
 
-var operands = map[string]string{
+var operators = map[string]string{
 	"eq":  "=",
 	"lt":  "<",
 	"gt":  ">",

@@ -1,89 +1,146 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func GetItemRaw(tableName string, id int) (string, error) {
-	sql, err := makeGetItemSqlRaw(tableName)
-	if err != nil {
-		return "", err
-	}
-	holder := makeHolder(tablesColumnsNum[tableName])
-	row := db.QueryRow(sql, id)
-	err = row.Scan(holder...)
-	if err != nil {
-		return "", err
-	}
-	jsMap := makeJsonMap(tableName, holder, "raw")
-	return jsMap, nil
+type Item struct {
+	name    string
+	id      int
+	mode    string
+	query   string
+	holder  []interface{}
+	jsonMap string
 }
 
-func GetItem(tableName string, id int) (string, error) {
-	sql, addNum, err := makeGetItemSql(tableName)
-	if err != nil {
-		return "", err
+func (i *Item) Get() error {
+	if err := i.makeQuery(); err != nil {
+		return err
 	}
-	fmt.Println(">>>>>>>", sql)
-	holder := makeHolder(tablesColumnsNum[tableName] + addNum)
-	row := db.QueryRow(sql, id)
-	err = row.Scan(holder...)
-	if err != nil {
-		return "", err
+	row := db.QueryRow(i.query, i.id)
+	if err := row.Scan(i.holder...); err != nil {
+		return err
 	}
-	jsMap := makeJsonMap(tableName, holder, "")
-	return jsMap, nil
+	i.jsonMap = makeJsonMap(i.name, i.holder, i.mode)
+	return nil
 }
 
-func GetItems(tableName string) (string, error) {
-	sel, err := makeSql(tableName, "all")
-	if err != nil {
-		return "", err
+func (i *Item) makeQuery() error {
+	if err := testForExistingTable(i.name); err != nil {
+		return err
 	}
+	var addNum int
+	var sels, joins string
+	if i.mode != "raw" {
+		sels, joins, addNum = makeAddJoins(i.name)
+	}
+	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.id=?",
+		i.name, sels, i.name, joins, i.name)
+	i.holder = makeHolder(tablesColumnsNum[i.name] + addNum)
+	return nil
+}
 
-	holder := makeHolder(tablesColumnsNum[tableName])
-	rows, err := db.Query(sel)
+type Items struct {
+	name     string
+	mode     string
+	query    string
+	holder   []interface{}
+	jsonList string
+}
+
+func (i *Items) Get() error {
+	if err := i.makeQuery(); err != nil {
+		return err
+	}
+	rows, err := i.getRows()
 	if err != nil {
-		return "", err
+		return err
 	}
 	defer rows.Close()
 	jsMaps := ""
 	for rows.Next() {
-		err = rows.Scan(holder...)
-		if err != nil {
-			return "", err
+		if err = rows.Scan(i.holder...); err != nil {
+			return err
 		}
-		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder, "raw"))
-	}
-	jsList := fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
-	return jsList, nil
-}
-
-func GetFilter(tableName, filterColumn, operator, value string) (string, error) {
-	sel, err := makeSql(tableName, "filter", filterColumn, operator)
-	if err != nil {
-		return "", err
-	}
-
-	holder := makeHolder(tablesColumnsNum[tableName])
-	rows, err := query(tablesColumnsRawMap[tableName][filterColumn].ctype, value, sel)
-	if err != nil {
-		return "", err
-	}
-	defer rows.Close()
-	jsMaps := ""
-	for rows.Next() {
-		err = rows.Scan(holder...)
-		if err != nil {
-			return "", err
-		}
-		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(tableName, holder, "raw"))
+		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(i.name, i.holder, i.mode))
 	}
 	if len(jsMaps) < 3 {
-		return "[]", nil
+		i.jsonList = "[]"
+	} else {
+		i.jsonList = fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
 	}
-	jsList := fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
-	return jsList, nil
+	return nil
+}
+
+func (i *Items) getRows() (*sql.Rows, error) {
+	return db.Query(i.query)
+}
+
+func (i *Items) makeQuery() error {
+	if err := testForExistingTable(i.name); err != nil {
+		return err
+	}
+	var addNum int
+	var sels, joins string
+	if i.mode != "raw" {
+		sels, joins, addNum = makeAddJoins(i.name)
+	}
+	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.is_active=1",
+		i.name, sels, i.name, joins, i.name)
+	i.holder = makeHolder(tablesColumnsNum[i.name] + addNum)
+	return nil
+}
+
+type FilteredItems struct {
+	Items
+	filterColumn string
+	operator     string
+	value        string
+}
+
+func (f *FilteredItems) Get() error {
+	if err := f.makeQuery(); err != nil {
+		return err
+	}
+	rows, err := f.getRows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	jsMaps := ""
+	for rows.Next() {
+		if err = rows.Scan(f.holder...); err != nil {
+			return err
+		}
+		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(f.name, f.holder, f.mode))
+	}
+	if len(jsMaps) < 3 {
+		f.jsonList = "[]"
+	} else {
+		f.jsonList = fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
+	}
+
+	return nil
+}
+
+func (f *FilteredItems) makeQuery() error {
+	operator, ok := operators[f.operator]
+	if !ok {
+		return fmt.Errorf("operator '%s' does not exist", f.operator)
+	}
+	if err := testForExistingColumn(f.name, f.filterColumn); err != nil {
+		return err
+	}
+	if err := f.Items.makeQuery(); err != nil {
+		return err
+	}
+	f.query = fmt.Sprintf("%s AND %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+	return nil
+}
+
+func (f *FilteredItems) getRows() (*sql.Rows, error) {
+	return query(tablesColumnsRawMap[f.name][f.filterColumn].ctype, f.value, f.query)
 }
