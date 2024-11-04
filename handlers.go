@@ -77,3 +77,27 @@ func getFilterHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	Respond(w, http.StatusOK, items.jsonList)
 }
+
+func putItemHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	tableName := params["table"]
+	body := r.Body
+	err := UpdateItem(tableName, body)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Can't update item"))
+		return
+	}
+	Respond(w, http.StatusOK, "{}")
+}
+
+func postItemHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	tableName := params["table"]
+	body := r.Body
+	err := CreateItem(tableName, body)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Can't create item"))
+		return
+	}
+	Respond(w, http.StatusOK, "{}")
+}

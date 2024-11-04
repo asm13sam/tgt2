@@ -2,7 +2,9 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
+	"io"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -143,4 +145,64 @@ func (f *FilteredItems) makeQuery() error {
 
 func (f *FilteredItems) getRows() (*sql.Rows, error) {
 	return query(tablesColumnsRawMap[f.name][f.filterColumn].ctype, f.value, f.query)
+}
+
+func UpdateItem(table string, body io.ReadCloser) error {
+	if err := testForExistingTable(table); err != nil {
+		return err
+	}
+
+	req := map[string]interface{}{}
+	decoder := json.NewDecoder(body)
+	defer body.Close()
+	err := decoder.Decode(&req)
+	if err != nil {
+		return err
+	}
+
+	params_len := len(tablesColumnsRaw[table])
+	params := make([]interface{}, params_len)
+	sql := ""
+	for i, column := range tablesColumnsRaw[table][1:] {
+		params[i] = req[column.cname]
+		sql += fmt.Sprintf(", %s=?", column.cname)
+	}
+	sql = fmt.Sprintf("UPDATE %s SET %s WHERE id=?", table, sql[2:])
+	params[params_len-1] = req["id"]
+	_, err = db.Exec(sql, params...)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func CreateItem(table string, body io.ReadCloser) error {
+	if err := testForExistingTable(table); err != nil {
+		return err
+	}
+
+	req := map[string]interface{}{}
+	decoder := json.NewDecoder(body)
+	defer body.Close()
+	err := decoder.Decode(&req)
+	if err != nil {
+		return err
+	}
+
+	params_len := len(tablesColumnsRaw[table])
+	params := make([]interface{}, params_len)
+	sql := ""
+	vals := ""
+	for i, column := range tablesColumnsRaw[table][1:] {
+		params[i] = req[column.cname]
+		sql += fmt.Sprintf(", %s", column.cname)
+		vals += ", ?"
+	}
+	sql = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, sql[2:], vals[2:])
+	params[params_len-1] = req["id"]
+	_, err = db.Exec(sql, params...)
+	if err != nil {
+		return err
+	}
+	return nil
 }
