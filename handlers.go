@@ -101,3 +101,21 @@ func postItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	Respond(w, http.StatusOK, "{}")
 }
+
+func delItemHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	id, err := strconv.Atoi(params["id"])
+	if err != nil {
+		Respond(w, http.StatusBadRequest, makeError(err, "Invalid ID"))
+		return
+	}
+	tableName := params["table"]
+	mode := r.URL.Query().Get("mode")
+
+	err = DeleteItem(tableName, id, mode)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Record not found"))
+		return
+	}
+	Respond(w, http.StatusOK, "{}")
+}
