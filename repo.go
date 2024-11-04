@@ -206,3 +206,20 @@ func CreateItem(table string, body io.ReadCloser) error {
 	}
 	return nil
 }
+
+func DeleteItem(table string, id int, mode string) error {
+	if err := testForExistingTable(table); err != nil {
+		return err
+	}
+	var sql string
+	if mode == "delete" {
+		sql = fmt.Sprintf("DELETE FROM %s WHERE id = ?", table)
+	} else {
+		sql = fmt.Sprintf("UPDATE %s SET is_active = 0 WHERE id = ?", table)
+	}
+	_, err := db.Exec(sql, id)
+	if err != nil {
+		return err
+	}
+	return nil
+}
