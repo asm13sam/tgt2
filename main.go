@@ -22,6 +22,8 @@ func main() {
 	// Define the endpoints
 	r.HandleFunc("/api/{table}", getItemsHandler).Methods("GET")
 	r.HandleFunc("/api/{table}/{id:[0-9]+}", getItemHandler).Methods("GET")
+	r.HandleFunc("/api/{table}", putItemHandler).Methods("PUT")
+	r.HandleFunc("/api/{table}", postItemHandler).Methods("POST")
 	r.HandleFunc("/api/filter/{table}/{column}/{operator}/{value}", getFilterHandler).Methods("GET")
 
 	// Start the server
