@@ -119,3 +119,13 @@ func delItemHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	Respond(w, http.StatusOK, "{}")
 }
+
+func createBaseHandler(w http.ResponseWriter, r *http.Request) {
+	body := r.Body
+	err := CreateBase(body)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Can't create database"))
+		return
+	}
+	Respond(w, http.StatusOK, "{}")
+}

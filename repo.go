@@ -223,3 +223,25 @@ func DeleteItem(table string, id int, mode string) error {
 	}
 	return nil
 }
+
+type Base struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func CreateBase(body io.ReadCloser) error {
+	base := Base{}
+	decoder := json.NewDecoder(body)
+	defer body.Close()
+	err := decoder.Decode(&base)
+	if err != nil {
+		return err
+	}
+	// var new_db *sql.DB
+	dbs[base.Name], err = sql.Open("sqlite3", base.Name)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Created base ", base.Name, base.Description)
+	return nil
+}

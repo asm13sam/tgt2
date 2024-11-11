@@ -18,6 +18,8 @@ const (
 
 var db *sql.DB
 
+var dbs = map[string]*sql.DB{}
+
 func DBconnect(dbFile string) error {
 	var err error
 	db, err = sql.Open("sqlite3", dbFile)
