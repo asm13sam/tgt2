@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -41,7 +42,7 @@ func (i *Item) makeQuery() error {
 	}
 	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.id=?",
 		i.name, sels, i.name, joins, i.name)
-	i.holder = makeHolder(tablesColumnsNum[i.name] + addNum)
+	i.holder = makeHolder(len(Md.Models[i.name].Columns) + addNum)
 	return nil
 }
 
@@ -92,7 +93,7 @@ func (i *Items) makeQuery() error {
 	}
 	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.is_active=1",
 		i.name, sels, i.name, joins, i.name)
-	i.holder = makeHolder(tablesColumnsNum[i.name] + addNum)
+	i.holder = makeHolder(len(Md.Models[i.name].Columns) + addNum)
 	return nil
 }
 
@@ -144,7 +145,54 @@ func (f *FilteredItems) makeQuery() error {
 }
 
 func (f *FilteredItems) getRows() (*sql.Rows, error) {
-	return query(tablesColumnsRawMap[f.name][f.filterColumn].ctype, f.value, f.query)
+	return query(Md.Models[f.name].Model[f.filterColumn].Type, f.value, f.query)
+}
+
+type BetweenItems struct {
+	Items
+	filterColumn string
+	value_start  string
+	value_end    string
+}
+
+func (b *BetweenItems) Get() error {
+	if err := b.makeQuery(); err != nil {
+		return err
+	}
+	rows, err := b.getRows()
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	jsMaps := ""
+	for rows.Next() {
+		if err = rows.Scan(b.holder...); err != nil {
+			return err
+		}
+		jsMaps += fmt.Sprintf("%s\n,", makeJsonMap(b.name, b.holder, b.mode))
+	}
+	if len(jsMaps) < 3 {
+		b.jsonList = "[]"
+	} else {
+		b.jsonList = fmt.Sprintf("[\n%s\n]", jsMaps[:len(jsMaps)-2])
+	}
+
+	return nil
+}
+
+func (b *BetweenItems) makeQuery() error {
+	if err := testForExistingColumn(b.name, b.filterColumn); err != nil {
+		return err
+	}
+	if err := b.Items.makeQuery(); err != nil {
+		return err
+	}
+	b.query = fmt.Sprintf("%s AND %s.%s BETWEEN ? and ?", b.query, b.name, b.filterColumn)
+	return nil
+}
+
+func (b *BetweenItems) getRows() (*sql.Rows, error) {
+	return queryBetween(Md.Models[b.name].Model[b.filterColumn].Type, b.value_start, b.value_end, b.query)
 }
 
 func UpdateItem(table string, body io.ReadCloser) error {
@@ -160,12 +208,12 @@ func UpdateItem(table string, body io.ReadCloser) error {
 		return err
 	}
 
-	params_len := len(tablesColumnsRaw[table])
+	params_len := len(Md.Models[table].Columns)
 	params := make([]interface{}, params_len)
 	sql := ""
-	for i, column := range tablesColumnsRaw[table][1:] {
-		params[i] = req[column.cname]
-		sql += fmt.Sprintf(", %s=?", column.cname)
+	for i, column := range Md.Models[table].Columns[1:] {
+		params[i] = req[column]
+		sql += fmt.Sprintf(", %s=?", column)
 	}
 	sql = fmt.Sprintf("UPDATE %s SET %s WHERE id=?", table, sql[2:])
 	params[params_len-1] = req["id"]
@@ -189,13 +237,13 @@ func CreateItem(table string, body io.ReadCloser) error {
 		return err
 	}
 
-	params_len := len(tablesColumnsRaw[table])
+	params_len := len(Md.Models[table].Columns)
 	params := make([]interface{}, params_len)
 	sql := ""
 	vals := ""
-	for i, column := range tablesColumnsRaw[table][1:] {
-		params[i] = req[column.cname]
-		sql += fmt.Sprintf(", %s", column.cname)
+	for i, column := range Md.Models[table].Columns[1:] {
+		params[i] = req[column]
+		sql += fmt.Sprintf(", %s", column)
 		vals += ", ?"
 	}
 	sql = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, sql[2:], vals[2:])
@@ -223,3 +271,47 @@ func DeleteItem(table string, id int, mode string) error {
 	}
 	return nil
 }
+
+type Base struct {
+	Name        string `json:"name"`
+	Description string `json:"description"`
+}
+
+func CreateBase(body io.ReadCloser) error {
+	base := Base{}
+	decoder := json.NewDecoder(body)
+	defer body.Close()
+	err := decoder.Decode(&base)
+	if err != nil {
+		return err
+	}
+	// var new_db *sql.DB
+	dbs[base.Name], err = sql.Open("sqlite3", base.Name)
+	if err != nil {
+		return err
+	}
+	fmt.Println("Created base ", base.Name, base.Description)
+	return nil
+}
+
+func GetModels() (string, error) {
+	data, err := os.ReadFile("models.json")
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
+// func GetModels() (Model, error) {
+// 	res := Model{}
+// 	data, err := os.ReadFile("models.json")
+// 	if err != nil {
+// 		return res, err
+// 	}
+// 	decoder := json.NewDecoder(strings.NewReader(string(data)))
+// 	err = decoder.Decode(&res)
+// 	if err != nil {
+// 		r.Respond(nil, err)
+// 	}
+// 	r.Respond(res, nil)
+// }

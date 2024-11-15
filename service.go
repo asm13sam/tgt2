@@ -18,6 +18,8 @@ const (
 
 var db *sql.DB
 
+var dbs = map[string]*sql.DB{}
+
 func DBconnect(dbFile string) error {
 	var err error
 	db, err = sql.Open("sqlite3", dbFile)
@@ -29,22 +31,22 @@ func DbClose() error {
 }
 
 func testForExistingTable(tableName string) error {
-	if _, ok := tablesColumnsRawMap[tableName]; !ok {
+	if _, ok := Md.Models[tableName]; !ok {
 		return fmt.Errorf("table %s does not exist", tableName)
 	}
 	return nil
 }
 
 func testForExistingColumn(tableName, columnName string) error {
-	if _, ok := tablesColumnsRawMap[tableName][columnName]; !ok {
+	if _, ok := Md.Models[tableName].Model[columnName]; !ok {
 		return fmt.Errorf("column '%s' in table '%s' does not exist", columnName, tableName)
 	}
 	return nil
 }
 
 func makeAddJoins(table string) (addSelect, addJoins string, addNum int) {
-	for _, col := range tablesColumnsRaw[table] {
-		joinTable, ok := strings.CutSuffix(col.cname, "_id")
+	for _, col := range Md.Models[table].Columns {
+		joinTable, ok := strings.CutSuffix(col, "_id")
 		if ok {
 			addNum++
 			origTable, ok := strings.CutSuffix(joinTable, "2")
@@ -52,20 +54,20 @@ func makeAddJoins(table string) (addSelect, addJoins string, addNum int) {
 				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, joinTable)
 				addJoins += fmt.Sprintf(
 					` LEFT JOIN %s AS %s ON %s.%s = %s.id`,
-					origTable, joinTable, table, col.cname, joinTable,
+					origTable, joinTable, table, col, joinTable,
 				)
 			} else if joinTable == table {
 				jtShort := joinTable[:2]
 				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, jtShort)
 				addJoins += fmt.Sprintf(
 					` LEFT JOIN %s AS %s ON %s.%s = %s.id`,
-					joinTable, jtShort, table, col.cname, jtShort,
+					joinTable, jtShort, table, col, jtShort,
 				)
 			} else {
 				addSelect += fmt.Sprintf(`, IFNULL(%s.name, "")`, joinTable)
 				addJoins += fmt.Sprintf(
 					` LEFT JOIN %s ON %s.%s = %s.id`,
-					joinTable, table, col.cname, joinTable,
+					joinTable, table, col, joinTable,
 				)
 			}
 		}
@@ -84,47 +86,80 @@ func makeHolder(number int) []interface{} {
 
 func makeJsonMap(tableName string, holder []interface{}, mode string) string {
 	var js string
-	var t int
-	columns := tablesColumns[tableName]
-	if mode == "raw" {
-		columns = tablesColumnsRaw[tableName]
+	var t ItemColumn
+	columns := Md.Models[tableName].Columns
+	if mode != "raw" {
+		columns = append(columns, Md.Models[tableName].WColumns...)
 	}
 
 	for i, s := range holder {
 		v := *s.(*string)
-		t = columns[i].ctype
-
-		if t == BOOL {
+		var ok bool
+		if t, ok = Md.Models[tableName].Model[columns[i]]; !ok {
+			t = Md.Models[tableName].WModel[columns[i]]
+		}
+		if t.Type == "bool" {
 			if v == "0" {
 				v = "false"
 			} else {
 				v = "true"
 			}
 		}
-		js += fmt.Sprintf(typesTemplates[t], columns[i].cname, v)
+		js += fmt.Sprintf(typesTemplates[t.Type], columns[i], v)
 	}
 	return fmt.Sprintf("{\n%s\n}", js[:len(js)-2])
 }
 
-func query(ctype int, value, sel string) (*sql.Rows, error) {
+func query(ctype, value, sql string) (*sql.Rows, error) {
 	switch ctype {
-	case INT:
+	case "int":
 		num, err := strconv.Atoi(value)
 		if err != nil {
 			return nil, err
 		}
-		return db.Query(sel, num)
-	case STRING:
-		return db.Query(sel, value)
-	case BOOL:
-		return db.Query(sel, value == "true" || value == "1")
-	case FLOAT:
+		return db.Query(sql, num)
+	case "str":
+		return db.Query(sql, value)
+	case "bool":
+		return db.Query(sql, value == "true" || value == "1")
+	case "float":
 		fnum, err := strconv.ParseFloat(value, 64)
 		if err != nil {
 			return nil, err
 		}
-		return db.Query(sel, fnum)
+		return db.Query(sql, fnum)
 	default:
-		return nil, fmt.Errorf("unknown type code %d for value %s", ctype, value)
+		return nil, fmt.Errorf("unknown type code %s for value %s", ctype, value)
+	}
+}
+
+func queryBetween(ctype, value_start, value_end, sql string) (*sql.Rows, error) {
+	switch ctype {
+	case "int":
+		num1, err := strconv.Atoi(value_start)
+		if err != nil {
+			return nil, err
+		}
+		num2, err := strconv.Atoi(value_end)
+		if err != nil {
+			return nil, err
+		}
+		return db.Query(sql, num1, num2)
+	case "str":
+		return db.Query(sql, value_start, value_end)
+	case "bool":
+		return db.Query(sql, value_start == "true" || value_start == "1", value_end == "true" || value_end == "1")
+	case "float":
+		fnum1, err := strconv.ParseFloat(value_start, 64)
+		if err != nil {
+			return nil, err
+		}
+		fnum2, err := strconv.ParseFloat(value_end, 64)
+		if err != nil {
+			return nil, err
+		}
+		return db.Query(sql, fnum1, fnum2)
+	default:
+		return nil, fmt.Errorf("unknown type code %s for values %s, %s", ctype, value_start, value_end)
 	}
 }
