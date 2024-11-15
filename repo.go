@@ -208,12 +208,12 @@ func UpdateItem(table string, body io.ReadCloser) error {
 		return err
 	}
 
-	params_len := len(tablesColumnsRaw[table])
+	params_len := len(Md.Models[table].Columns)
 	params := make([]interface{}, params_len)
 	sql := ""
-	for i, column := range tablesColumnsRaw[table][1:] {
-		params[i] = req[column.cname]
-		sql += fmt.Sprintf(", %s=?", column.cname)
+	for i, column := range Md.Models[table].Columns[1:] {
+		params[i] = req[column]
+		sql += fmt.Sprintf(", %s=?", column)
 	}
 	sql = fmt.Sprintf("UPDATE %s SET %s WHERE id=?", table, sql[2:])
 	params[params_len-1] = req["id"]
@@ -237,13 +237,13 @@ func CreateItem(table string, body io.ReadCloser) error {
 		return err
 	}
 
-	params_len := len(tablesColumnsRaw[table])
+	params_len := len(Md.Models[table].Columns)
 	params := make([]interface{}, params_len)
 	sql := ""
 	vals := ""
-	for i, column := range tablesColumnsRaw[table][1:] {
-		params[i] = req[column.cname]
-		sql += fmt.Sprintf(", %s", column.cname)
+	for i, column := range Md.Models[table].Columns[1:] {
+		params[i] = req[column]
+		sql += fmt.Sprintf(", %s", column)
 		vals += ", ?"
 	}
 	sql = fmt.Sprintf("INSERT INTO %s (%s) VALUES (%s)", table, sql[2:], vals[2:])
