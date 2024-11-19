@@ -19,6 +19,7 @@ var operators = map[string]string{
 	"gt":  ">",
 	"lte": "<=",
 	"gte": ">=",
+	"ne":  "<>",
 }
 
 const (

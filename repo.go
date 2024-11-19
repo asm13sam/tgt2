@@ -49,6 +49,7 @@ func (i *Item) makeQuery() error {
 type Items struct {
 	name     string
 	mode     string
+	active   string
 	query    string
 	holder   []interface{}
 	jsonList string
@@ -91,8 +92,16 @@ func (i *Items) makeQuery() error {
 	if i.mode != "raw" {
 		sels, joins, addNum = makeAddJoins(i.name)
 	}
-	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s WHERE %s.is_active=1",
-		i.name, sels, i.name, joins, i.name)
+
+	i.query = fmt.Sprintf("SELECT %s.* %s FROM %s %s",
+		i.name, sels, i.name, joins)
+
+	if i.active == "unactive" {
+		i.query = fmt.Sprintf("%s WHERE %s.is_active=0", i.query, i.name)
+	} else if i.active != "all" {
+		i.query = fmt.Sprintf("%s WHERE %s.is_active=1", i.query, i.name)
+	}
+
 	i.holder = makeHolder(len(Md.Models[i.name].Columns) + addNum)
 	return nil
 }
@@ -140,7 +149,13 @@ func (f *FilteredItems) makeQuery() error {
 	if err := f.Items.makeQuery(); err != nil {
 		return err
 	}
-	f.query = fmt.Sprintf("%s AND %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+
+	if f.active == "all" {
+		f.query = fmt.Sprintf("%s WHERE %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+	} else {
+		f.query = fmt.Sprintf("%s AND %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+	}
+
 	return nil
 }
 
@@ -187,7 +202,11 @@ func (b *BetweenItems) makeQuery() error {
 	if err := b.Items.makeQuery(); err != nil {
 		return err
 	}
-	b.query = fmt.Sprintf("%s AND %s.%s BETWEEN ? and ?", b.query, b.name, b.filterColumn)
+	if b.active == "all" {
+		b.query = fmt.Sprintf("%s WHERE %s.%s BETWEEN ? and ?", b.query, b.name, b.filterColumn)
+	} else {
+		b.query = fmt.Sprintf("%s AND %s.%s BETWEEN ? and ?", b.query, b.name, b.filterColumn)
+	}
 	return nil
 }
 
