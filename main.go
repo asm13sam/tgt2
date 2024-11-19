@@ -31,6 +31,8 @@ func main() {
 	r.HandleFunc("/api/{table}", putItemHandler).Methods("PUT")
 	r.HandleFunc("/api/{table}", postItemHandler).Methods("POST")
 	r.HandleFunc("/api/{table}/{id:[0-9]+}", delItemHandler).Methods("DELETE")
+	r.HandleFunc("/api/sum/{table}/{column}", getSumHandler).Methods("GET")
+	r.HandleFunc("/api/sum/filter/{table}/{sum_column}/{filter_column}/{operator}/{value}", getFilterSumHandler).Methods("GET")
 	r.HandleFunc("/api/filter/{table}/{column}/{operator}/{value}", getFilterHandler).Methods("GET")
 	r.HandleFunc("/api/between/{table}/{column}/{value_start}/{value_end}", getBetweenHandler).Methods("GET")
 

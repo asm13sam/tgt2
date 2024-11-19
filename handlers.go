@@ -83,6 +83,22 @@ func getFilterHandler(w http.ResponseWriter, r *http.Request) {
 	Respond(w, http.StatusOK, items.jsonList)
 }
 
+func getFilterSumHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	tableName := params["table"]
+	filterColumn := params["filter_column"]
+	sumColumn := params["sum_column"]
+	operator := params["operator"]
+	value := params["value"]
+	fmt.Println("get sum filter", tableName, sumColumn, filterColumn, operator, value)
+	sum, err := GetSumFilter(tableName, sumColumn, filterColumn, operator, value)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Records not found"))
+		return
+	}
+	Respond(w, http.StatusOK, fmt.Sprintf("{\"sum\": %f}", sum))
+}
+
 func getBetweenHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	tableName := params["table"]
@@ -104,6 +120,19 @@ func getBetweenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	Respond(w, http.StatusOK, items.jsonList)
+}
+
+func getSumHandler(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	tableName := params["table"]
+	filterColumn := params["column"]
+	fmt.Println("get sum", tableName, filterColumn)
+	sum, err := GetSum(tableName, filterColumn)
+	if err != nil {
+		Respond(w, http.StatusInternalServerError, makeError(err, "Can't update item"))
+		return
+	}
+	Respond(w, http.StatusOK, fmt.Sprintf("{\"sum\": %f}", sum))
 }
 
 func putItemHandler(w http.ResponseWriter, r *http.Request) {
