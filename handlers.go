@@ -49,7 +49,8 @@ func getItemsHandler(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	tableName := params["table"]
 	mode := r.URL.Query().Get("mode")
-	items := &Items{name: tableName, mode: mode}
+	active := r.URL.Query().Get("active")
+	items := &Items{name: tableName, mode: mode, active: active}
 	fmt.Println("get items", tableName, mode)
 	err := items.Get()
 	if err != nil {
@@ -66,8 +67,9 @@ func getFilterHandler(w http.ResponseWriter, r *http.Request) {
 	operator := params["operator"]
 	value := params["value"]
 	mode := r.URL.Query().Get("mode")
+	active := r.URL.Query().Get("active")
 	items := &FilteredItems{
-		Items:        Items{name: tableName, mode: mode},
+		Items:        Items{name: tableName, mode: mode, active: active},
 		filterColumn: filterColumn,
 		operator:     operator,
 		value:        value,
@@ -88,8 +90,9 @@ func getBetweenHandler(w http.ResponseWriter, r *http.Request) {
 	value_start := params["value_start"]
 	value_end := params["value_end"]
 	mode := r.URL.Query().Get("mode")
+	active := r.URL.Query().Get("active")
 	items := &BetweenItems{
-		Items:        Items{name: tableName, mode: mode},
+		Items:        Items{name: tableName, mode: mode, active: active},
 		filterColumn: filterColumn,
 		value_start:  value_start,
 		value_end:    value_end,
