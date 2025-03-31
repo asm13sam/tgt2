@@ -1,9 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 )
@@ -37,6 +37,22 @@ func main() {
 	r.HandleFunc("/api/between/{table}/{column}/{value_start}/{value_end}", getBetweenHandler).Methods("GET")
 
 	// Start the server
-	fmt.Println("Server is running on port 8877...")
-	log.Fatal(http.ListenAndServe(":8877", r))
+
+	server := http.Server{
+		Addr:         ":8877",
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 90 * time.Second,
+		IdleTimeout:  120 * time.Second,
+		Handler:      r,
+	}
+
+	err = server.ListenAndServe()
+	if err != nil {
+		if err != http.ErrServerClosed {
+			panic(err)
+		}
+	}
+
+	// fmt.Println("Server is running on port 8877...")
+	// log.Fatal(http.ListenAndServe(":8877", r))
 }
