@@ -104,6 +104,12 @@ func makeJsonMap(tableName string, holder []interface{}, mode string) string {
 			} else {
 				v = "true"
 			}
+		} else if t.Type == "str" {
+			if strings.Contains(v, "\\") {
+				fmt.Println(v)
+				v = strings.ReplaceAll(v, "\\", "/")
+			}
+
 		}
 		js += fmt.Sprintf(typesTemplates[t.Type], columns[i], v)
 	}

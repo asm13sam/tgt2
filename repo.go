@@ -214,6 +214,42 @@ func (b *BetweenItems) getRows() (*sql.Rows, error) {
 	return queryBetween(Md.Models[b.name].Model[b.filterColumn].Type, b.value_start, b.value_end, b.query)
 }
 
+func GetSum(table, column string) (float64, error) {
+	if err := testForExistingTable(table); err != nil {
+		return 0.0, err
+	}
+	if err := testForExistingColumn(table, column); err != nil {
+		return 0.0, err
+	}
+	query := fmt.Sprintf("SELECT SUM(%s) FROM %s WHERE is_active=1", column, table)
+	row := db.QueryRow(query)
+	var sum float64
+	err := row.Scan(&sum)
+	return sum, err
+}
+
+func GetSumFilter(table, sum_column, filter_column, operator, value string) (float64, error) {
+	if err := testForExistingTable(table); err != nil {
+		return 0.0, err
+	}
+	if err := testForExistingColumn(table, sum_column); err != nil {
+		return 0.0, err
+	}
+	if err := testForExistingColumn(table, filter_column); err != nil {
+		return 0.0, err
+	}
+	operator, ok := operators[operator]
+	if !ok {
+		return 0.0, fmt.Errorf("operator '%s' does not exist", operator)
+	}
+	query := fmt.Sprintf("SELECT SUM(%s) FROM %s WHERE %s %s %s AND is_active=1",
+		sum_column, table, filter_column, operator, value)
+	row := db.QueryRow(query)
+	var sum float64
+	err := row.Scan(&sum)
+	return sum, err
+}
+
 func UpdateItem(table string, body io.ReadCloser) error {
 	if err := testForExistingTable(table); err != nil {
 		return err
