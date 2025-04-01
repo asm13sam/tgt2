@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	_ "github.com/mattn/go-sqlite3"
+	sqlite "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -20,9 +20,22 @@ var db *sql.DB
 
 var dbs = map[string]*sql.DB{}
 
+func low(s string) string {
+	return strings.ToLower(s)
+}
+
 func DBconnect(dbFile string) error {
 	var err error
-	db, err = sql.Open("sqlite3", dbFile)
+	sql.Register("sqlite3_custom", &sqlite.SQLiteDriver{
+		ConnectHook: func(conn *sqlite.SQLiteConn) error {
+			if err := conn.RegisterFunc("LOW", low, true); err != nil {
+				return err
+			}
+			return nil
+		},
+	})
+
+	db, err = sql.Open("sqlite3_custom", dbFile)
 	return err
 }
 
@@ -108,6 +121,10 @@ func makeJsonMap(tableName string, holder []interface{}, mode string) string {
 			if strings.Contains(v, "\\") {
 				fmt.Println(v)
 				v = strings.ReplaceAll(v, "\\", "/")
+			}
+			if strings.Contains(v, "\"") {
+				fmt.Println(v)
+				v = strings.ReplaceAll(v, "\"", "'")
 			}
 
 		}

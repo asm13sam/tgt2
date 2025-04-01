@@ -1,53 +1,22 @@
 {
   "documents": [
     "ordering",
+    "reordering",
     "cash_in",
     "cash_out",
+    "cash_btw",
     "whs_in",
     "whs_out",
-    "invoice"
+    "whs_btw",
+    "cbox_check"
   ],
   "doc_table_items": [
     "matherial_to_whs_in",
     "matherial_to_whs_out",
+    "matherial_to_whs_btw",
     "operation_to_ordering"
   ],
   "models": {
-    "document": {
-      "hum": "Документ",
-      "rights": "DOC",
-      "message": 0,
-      "fkeys": {},
-      "columns": [
-        "id",
-        "doc_type",
-        "is_active"
-      ],
-      "w_columns": [],
-      "model": {
-        "id": {
-          "def": 0,
-          "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "doc_type": {
-          "def": "",
-          "hum": "Тип",
-          "form": 0,
-          "type": "str"
-        },
-        "is_active": {
-          "def": true,
-          "hum": "Діючий",
-          "form": 0,
-          "type": "bool"
-        }
-      },
-      "w_model": {},
-      "related": [],
-      "registers": []
-    },
     "measure": {
       "hum": "Од. виміру",
       "rights": "CATALOG",
@@ -86,9 +55,7 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "count_type": {
       "hum": "Тип обліку",
@@ -121,9 +88,7 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "color_group": {
       "hum": "Група кольору",
@@ -184,9 +149,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "color": {
       "hum": "Колір",
@@ -247,9 +210,7 @@
           "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "matherial_group": {
       "hum": "Група матеріалів",
@@ -310,9 +271,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "matherial": {
       "hum": "Матеріал",
@@ -331,6 +290,10 @@
           "color_group",
           "id"
         ],
+        "whs_id": [
+          "whs",
+          "id"
+        ],
         "count_type_id": [
           "count_type",
           "id"
@@ -343,8 +306,10 @@
         "matherial_group_id",
         "measure_id",
         "color_group_id",
+        "whs_id",
         "price",
         "cost",
+        "mark_up",
         "total",
         "barcode",
         "count_type_id",
@@ -354,6 +319,7 @@
         "matherial_group",
         "measure",
         "color_group",
+        "whs",
         "count_type"
       ],
       "model": {
@@ -393,6 +359,12 @@
           "form": 1,
           "type": "int"
         },
+        "whs_id": {
+          "def": 0,
+          "hum": "Склад за замовч.",
+          "form": 2,
+          "type": "int"
+        },
         "price": {
           "def": 0.0,
           "hum": "Ціна",
@@ -404,6 +376,12 @@
           "hum": "Вартість",
           "form": 1,
           "type": "float"
+        },
+        "mark_up": {
+          "def": 50,
+          "hum": "Націнка, %",
+          "form": 1,
+          "type": "int"
         },
         "total": {
           "def": 0.0,
@@ -449,32 +427,39 @@
           "form": 1,
           "type": "str"
         },
+        "whs": {
+          "def": "",
+          "hum": "Склад за замовч.",
+          "form": 2,
+          "type": "str"
+        },
         "count_type": {
           "def": "",
           "hum": "Тип обліку",
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
-    "cash": {
-      "hum": "Каса",
+    "department": {
+      "hum": "Відділ",
       "rights": "CATALOG",
       "message": 1,
-      "fkeys": {},
+      "fkeys": {
+        "contragent_id": [
+          "contragent",
+          "id"
+        ]
+      },
       "columns": [
         "id",
         "name",
-        "persent",
-        "total",
+        "contragent_id",
         "comm",
-        "is_fiscal",
-        "is_account",
+        "is_production",
         "is_active"
       ],
-      "w_columns": [],
+      "w_columns": ["contragent"],
       "model": {
         "id": {
           "def": 0,
@@ -487,6 +472,81 @@
           "hum": "Назва",
           "form": 2,
           "type": "str"
+        },
+        "contragent_id": {
+          "def": 0,
+          "hum": "Контрагент",
+          "form": 2,
+          "type": "int"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "is_production": {
+          "def": true,
+          "hum": "Виробництво",
+          "form": 1,
+          "type": "bool"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "contragent": {
+          "def": "",
+          "hum": "Контрагент",
+          "form": 2,
+          "type": "str"
+        }
+      }
+    },
+    "cash": {
+      "hum": "Каса",
+      "rights": "CATALOG",
+      "message": 1,
+      "fkeys": {
+        "department_id": [
+          "department",
+          "id"
+        ]
+      },
+      "columns": [
+        "id",
+        "name",
+        "department_id",
+        "persent",
+        "total",
+        "comm",
+        "is_fiscal",
+        "is_account",
+        "is_active"
+      ],
+      "w_columns": ["department"],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "name": {
+          "def": "",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "department_id": {
+          "def": 0,
+          "hum": "Відділ",
+          "form": 2,
+          "type": "int"
         },
         "persent": {
           "def": 0.0,
@@ -525,9 +585,14 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {
+        "department": {
+          "def": "",
+          "hum": "Відділ",
+          "form": 2,
+          "type": "str"
+        }
+      }
     },
     "user_group": {
       "hum": "Група користувачів",
@@ -588,9 +653,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "user": {
       "hum": "Оператор",
@@ -718,9 +781,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "equipment_group": {
       "hum": "Група обладнання",
@@ -781,9 +842,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "equipment": {
       "hum": "Обладнання",
@@ -793,6 +852,10 @@
         "equipment_group_id": [
           "equipment_group",
           "id"
+        ],
+        "department_id": [
+          "department",
+          "id"
         ]
       },
       "columns": [
@@ -800,12 +863,14 @@
         "name",
         "full_name",
         "equipment_group_id",
+        "department_id",
         "cost",
         "total",
         "is_active"
       ],
       "w_columns": [
-        "equipment_group"
+        "equipment_group",
+        "department"
       ],
       "model": {
         "id": {
@@ -830,6 +895,12 @@
           "def": 0,
           "hum": "Група обладнання",
           "form": 1,
+          "type": "int"
+        },
+        "department_id": {
+          "def": 0,
+          "hum": "Відділ",
+          "form": 2,
           "type": "int"
         },
         "cost": {
@@ -857,10 +928,14 @@
           "hum": "Група обладнання",
           "form": 1,
           "type": "str"
+        },
+        "department": {
+          "def": "",
+          "hum": "Відділ",
+          "form": 2,
+          "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "operation_group": {
       "hum": "Група операцій",
@@ -921,9 +996,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "operation": {
       "hum": "Операція",
@@ -1013,7 +1086,7 @@
         "cost": {
           "def": 0.0,
           "hum": "Ціна",
-          "form": 2,
+          "form": 1,
           "type": "float"
         },
         "equipment_id": {
@@ -1066,9 +1139,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "product_group": {
       "hum": "Група виробів",
@@ -1129,9 +1200,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "product": {
       "hum": "Виріб",
@@ -1144,6 +1213,10 @@
         ],
         "measure_id": [
           "measure",
+          "id"
+        ],
+        "whs_id": [
+          "whs",
           "id"
         ],
         "user_id": [
@@ -1161,13 +1234,17 @@
         "length",
         "min_cost",
         "cost",
+        "round_to",
         "user_id",
+        "whs_id",
         "barcode",
+        "profitability",
         "is_active"
       ],
       "w_columns": [
         "product_group",
         "measure",
+        "whs",
         "user"
       ],
       "model": {
@@ -1225,6 +1302,18 @@
           "form": 1,
           "type": "float"
         },
+        "round_to": {
+          "def": 0.01,
+          "hum": "Округлити до",
+          "form": 1,
+          "type": "float"
+        },
+        "whs_id": {
+          "def": 0,
+          "hum": "Склад",
+          "form": 2,
+          "type": "int"
+        },
         "user_id": {
           "def": 0,
           "hum": "Виконавець",
@@ -1236,6 +1325,12 @@
           "hum": "Штрихкод",
           "form": 0,
           "type": "str"
+        },
+        "profitability": {
+          "def": 50,
+          "hum": "Бажана рентабельність",
+          "form": 1,
+          "type": "int"
         },
         "is_active": {
           "def": true,
@@ -1257,15 +1352,19 @@
           "form": 2,
           "type": "str"
         },
+        "whs": {
+          "def": "",
+          "hum": "Склад",
+          "form": 2,
+          "type": "str"
+        },
         "user": {
           "def": "",
           "hum": "Виконавець",
           "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "contragent_group": {
       "hum": "Група контрагента",
@@ -1326,11 +1425,22 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "contragent": {
+      "find": [
+        {
+          "contragent": [
+            "search"
+          ],
+          "contact": [
+            "search"
+          ],
+          "legal": [
+            "search"
+          ]
+        }
+      ],
       "hum": "Контрагент",
       "rights": "CONTRAGENT",
       "message": 1,
@@ -1343,6 +1453,7 @@
       "columns": [
         "id",
         "name",
+        "full_name",
         "contragent_group_id",
         "phone",
         "email",
@@ -1351,14 +1462,6 @@
         "dir_name",
         "search",
         "total",
-        "full_name",
-        "edrpou",
-        "ipn",
-        "iban",
-        "bank",
-        "mfo",
-        "fop",
-        "address",
         "is_active"
       ],
       "w_columns": [
@@ -1374,6 +1477,12 @@
         "name": {
           "def": "",
           "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "full_name": {
+          "def": "",
+          "hum": "Повна назва",
           "form": 2,
           "type": "str"
         },
@@ -1425,10 +1534,93 @@
           "form": 1,
           "type": "float"
         },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "contragent_group": {
+          "def": "",
+          "hum": "Група контрагента",
+          "form": 1,
+          "type": "str"
+        }
+      }
+    },
+    "legal": {
+      "hum": "Юр. особа",
+      "rights": "CONTRAGENT",
+      "message": 1,
+      "fkeys": {
+        "contragent_id": [
+          "contragent",
+          "id"
+        ]
+      },
+      "columns": [
+        "id",
+        "contragent_id",
+        "name",
+        "comm",
+        "search",
+        "total",
+        "full_name",
+        "edrpou",
+        "ipn",
+        "iban",
+        "bank",
+        "mfo",
+        "fop",
+        "address",
+        "is_active"
+      ],
+      "w_columns": [
+        "contragent"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "contragent_id": {
+          "def": 0,
+          "hum": "Контрагент",
+          "form": 2,
+          "type": "int"
+        },
+        "name": {
+          "def": "",
+          "hum": "Назва",
+          "form": 1,
+          "type": "str"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "search": {
+          "def": "",
+          "hum": "Пошук",
+          "form": 0,
+          "type": "str"
+        },
+        "total": {
+          "def": 0.0,
+          "hum": "Баланс",
+          "form": 1,
+          "type": "float"
+        },
         "full_name": {
           "def": "",
           "hum": "Повна назва",
-          "form": 2,
+          "form": 1,
           "type": "str"
         },
         "edrpou": {
@@ -1481,15 +1673,13 @@
         }
       },
       "w_model": {
-        "contragent_group": {
+        "contragent": {
           "def": "",
-          "hum": "Група контрагента",
-          "form": 1,
+          "hum": "Контрагент",
+          "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "contact": {
       "hum": "Контактна особа",
@@ -1599,18 +1789,17 @@
           "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "ordering_status": {
-      "hum": "Стан",
+      "hum": "Етап",
       "rights": "DOC",
       "message": 1,
       "fkeys": {},
       "columns": [
         "id",
         "name",
+        "position",
         "is_active"
       ],
       "w_columns": [],
@@ -1627,6 +1816,12 @@
           "form": 2,
           "type": "str"
         },
+        "position": {
+          "def": 0,
+          "hum": "Позиція",
+          "form": 1,
+          "type": "int"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -1634,9 +1829,47 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
+    },
+    "ordering_state": {
+      "hum": "Стан",
+      "rights": "DOC",
+      "message": 1,
+      "fkeys": {},
+      "columns": [
+        "id",
+        "name",
+        "position",
+        "is_active"
+      ],
+      "w_columns": [],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "name": {
+          "def": "",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "position": {
+          "def": 0,
+          "hum": "Позиція",
+          "form": 1,
+          "type": "int"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {}
     },
     "ordering": {
       "related": [
@@ -1656,6 +1889,11 @@
           "filter_value": "id"
         },
         {
+          "table": "reordering",
+          "filter": "ordering_id",
+          "filter_value": "id"
+        },
+        {
           "table": "invoice",
           "filter": "ordering_id",
           "filter_value": "id"
@@ -1663,23 +1901,32 @@
         {
           "table": "cash_out",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         },
         {
           "table": "cash_in",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         },
         {
           "table": "whs_out",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         },
         {
           "table": "whs_in",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         }
+      ],
+      "between": [
+        "created_at",
+        "deadline_at",
+        "finished_at",
+        "ordering_status_id"
+      ],
+      "sum": [
+        "cost"
       ],
       "hum": "Замовлення",
       "rights": "DOC",
@@ -1697,14 +1944,21 @@
           "contact",
           "id"
         ],
+        "legal_id": [
+          "contact",
+          "id"
+        ],
         "ordering_status_id": [
           "ordering_status",
+          "id"
+        ],
+        "ordering_state_id": [
+          "ordering_state",
           "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "created_at",
         "deadline_at",
@@ -1712,12 +1966,14 @@
         "user_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "price",
         "persent",
         "profit",
         "cost",
         "info",
         "ordering_status_id",
+        "ordering_state_id",
         "is_realized",
         "is_active"
       ],
@@ -1725,18 +1981,14 @@
         "user",
         "contragent",
         "contact",
-        "ordering_status"
+        "legal",
+        "ordering_status",
+        "ordering_state"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -1782,6 +2034,12 @@
           "form": 2,
           "type": "int"
         },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "int"
+        },
         "price": {
           "def": 0.0,
           "hum": "Ціна",
@@ -1814,8 +2072,14 @@
         },
         "ordering_status_id": {
           "def": 1,
+          "hum": "Етап",
+          "form": 2,
+          "type": "int"
+        },
+        "ordering_state_id": {
+          "def": 1,
           "hum": "Стан",
-          "form": 1,
+          "form": 2,
           "type": "int"
         },
         "is_realized": {
@@ -1850,14 +2114,222 @@
           "form": 2,
           "type": "str"
         },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
+        },
         "ordering_status": {
+          "def": "",
+          "hum": "Етап",
+          "form": 1,
+          "type": "str"
+        },
+        "ordering_state": {
           "def": "",
           "hum": "Стан",
           "form": 1,
           "type": "str"
         }
+      }
+    },
+    "reordering": {
+      "rz_register": [
+        {
+          "reg_field": "contragent.total",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contact.total",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
+      "related": [
+        {
+          "table": "matherial_to_reordering",
+          "filter": "reordering_id",
+          "filter_value": "id"
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cost"
+      ],
+      "hum": "Перезамовлення",
+      "rights": "DOC",
+      "message": 1,
+      "fkeys": {
+        "ordering_id": [
+          "ordering",
+          "id"
+        ],
+        "user_id": [
+          "user",
+          "id"
+        ],
+        "contragent_id": [
+          "contragent",
+          "id"
+        ],
+        "contact_id": [
+          "contact",
+          "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
+        ]
       },
-      "registers": []
+      "columns": [
+        "id",
+        "name",
+        "based_on",
+        "ordering_id",
+        "created_at",
+        "user_id",
+        "contragent_id",
+        "contact_id",
+        "legal_id",
+        "cost",
+        "comm",
+        "is_realized",
+        "is_active"
+      ],
+      "w_columns": [
+        "ordering",
+        "user",
+        "contragent",
+        "contact",
+        "legal"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "name": {
+          "def": "Перезамовлення",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "based_on": {
+          "def": "",
+          "hum": "За документом",
+          "form": 0,
+          "type": "str"
+        },
+        "ordering_id": {
+          "def": 0,
+          "hum": "Замовлення",
+          "form": 0,
+          "type": "int"
+        },
+        "created_at": {
+          "def": "date",
+          "hum": "Створений",
+          "form": 0,
+          "type": "str"
+        },
+        "user_id": {
+          "def": 0,
+          "hum": "Менеджер",
+          "form": 2,
+          "type": "int"
+        },
+        "contragent_id": {
+          "def": 0,
+          "hum": "Контрагент",
+          "form": 2,
+          "type": "int"
+        },
+        "contact_id": {
+          "def": 0,
+          "hum": "Контакт",
+          "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "int"
+        },
+        "cost": {
+          "def": 0.0,
+          "hum": "Вартість",
+          "form": 1,
+          "type": "float"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "is_realized": {
+          "def": false,
+          "hum": "Проведений",
+          "form": 0,
+          "type": "bool"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діюче",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "ordering": {
+          "def": "",
+          "hum": "Замовлення",
+          "form": 1,
+          "type": "str"
+        },
+        "user": {
+          "def": "",
+          "hum": "Менеджер",
+          "form": 2,
+          "type": "str"
+        },
+        "contragent": {
+          "def": "",
+          "hum": "Контрагент",
+          "form": 2,
+          "type": "str"
+        },
+        "contact": {
+          "def": "",
+          "hum": "Контакт",
+          "form": 2,
+          "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
+        }
+      }
     },
     "owner": {
       "hum": "Власні записи",
@@ -1881,6 +2353,7 @@
         "fop",
         "address",
         "sign",
+        "stamp",
         "is_active"
       ],
       "w_columns": [],
@@ -1981,6 +2454,12 @@
           "form": 1,
           "type": "str"
         },
+        "stamp": {
+          "def": "",
+          "hum": "Печатка(назва файлу)",
+          "form": 1,
+          "type": "str"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -1988,17 +2467,30 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "invoice": {
+      "register": [
+        {
+          "reg_field": "owner.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        }
+      ],
       "related": [
         {
           "table": "item_to_invoice",
           "filter": "invoice_id",
           "filter_value": "id"
         }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cash_sum"
       ],
       "hum": "Рахунок",
       "rights": "DOC",
@@ -2023,11 +2515,14 @@
         "contact_id": [
           "contact",
           "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "ordering_id",
         "based_on",
         "owner_id",
@@ -2036,9 +2531,9 @@
         "user_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "cash_sum",
         "comm",
-        "is_realized",
         "is_active"
       ],
       "w_columns": [
@@ -2046,18 +2541,13 @@
         "owner",
         "user",
         "contragent",
-        "contact"
+        "contact",
+        "legal"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -2068,10 +2558,10 @@
           "type": "int"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
           "form": 0,
-          "type": "int"
+          "type": "str"
         },
         "owner_id": {
           "def": 0,
@@ -2109,6 +2599,12 @@
           "form": 2,
           "type": "int"
         },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "int"
+        },
         "cash_sum": {
           "def": 0.0,
           "hum": "Вартість",
@@ -2120,12 +2616,6 @@
           "hum": "Коментар",
           "form": 1,
           "type": "str"
-        },
-        "is_realized": {
-          "def": false,
-          "hum": "Проведений",
-          "form": 0,
-          "type": "bool"
         },
         "is_active": {
           "def": true,
@@ -2164,36 +2654,28 @@
           "hum": "Контакт",
           "form": 2,
           "type": "str"
-        }
-      },
-      "registers": [
-        {
-          "reg_field": "contragent.total",
-          "val_field": [
-            "cash_sum"
-          ],
-          "func": "-",
-          "type": "rz_register"
         },
-        {
-          "reg_field": "contact.total",
-          "val_field": [
-            "cash_sum"
-          ],
-          "func": "-",
-          "type": "rz_register"
-        },
-        {
-          "reg_field": "owner.total",
-          "val_field": [
-            "cash_sum"
-          ],
-          "func": "+",
-          "type": "rz_register"
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
         }
-      ]
+      }
     },
     "item_to_invoice": {
+      "sum": [
+        "cost"
+      ],
+      "register": [
+        {
+          "reg_field": "invoice.cash_sum",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
       "hum": "Позиція рахунку",
       "rights": "DOC",
       "message": 0,
@@ -2284,18 +2766,7 @@
           "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
-        {
-          "reg_field": "invoice.cash_sum",
-          "val_field": [
-            "cost"
-          ],
-          "func": "+",
-          "type": "register"
-        }
-      ]
+      }
     },
     "product_to_ordering_status": {
       "hum": "Стан",
@@ -2328,11 +2799,12 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "product_to_ordering": {
+      "sum": [
+        "cost"
+      ],
       "related": [
         {
           "table": "product_to_ordering",
@@ -2445,7 +2917,7 @@
         "product_to_ordering_status_id": {
           "def": 1,
           "hum": "Стан",
-          "form": 1,
+          "form": 2,
           "type": "int"
         },
         "width": {
@@ -2546,10 +3018,12 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "registers": []
+      }
     },
     "matherial_to_ordering": {
+      "sum": [
+        "cost"
+      ],
       "between_up": [
         "ordering.created_at"
       ],
@@ -2563,6 +3037,10 @@
         ],
         "matherial_id": [
           "matherial",
+          "id"
+        ],
+        "whs_id": [
+          "whs",
           "id"
         ],
         "color_id": [
@@ -2582,6 +3060,7 @@
         "id",
         "ordering_id",
         "matherial_id",
+        "whs_id",
         "width",
         "length",
         "pieces",
@@ -2594,11 +3073,13 @@
         "cost",
         "comm",
         "product_to_ordering_id",
+        "is_issued",
         "is_active"
       ],
       "w_columns": [
         "ordering",
         "matherial",
+        "whs",
         "color",
         "user",
         "product_to_ordering"
@@ -2619,6 +3100,12 @@
         "matherial_id": {
           "def": 0,
           "hum": "Матеріал",
+          "form": 2,
+          "type": "int"
+        },
+        "whs_id": {
+          "def": 0,
+          "hum": "Склад",
           "form": 2,
           "type": "int"
         },
@@ -2694,6 +3181,12 @@
           "form": 1,
           "type": "int"
         },
+        "is_issued": {
+          "def": false,
+          "hum": "Виданий",
+          "form": 1,
+          "type": "bool"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -2711,6 +3204,12 @@
         "matherial": {
           "def": "",
           "hum": "Матеріал",
+          "form": 2,
+          "type": "str"
+        },
+        "whs": {
+          "def": "",
+          "hum": "Склад",
           "form": 2,
           "type": "str"
         },
@@ -2732,11 +3231,12 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "matherial_to_product": {
+      "sum": [
+        "cost"
+      ],
       "hum": "Матеріал до виробу",
       "rights": "DOC",
       "message": 0,
@@ -2761,6 +3261,8 @@
         "is_multiselect",
         "comm",
         "is_used",
+        "ask_num",
+        "add_to_price",
         "is_active"
       ],
       "w_columns": [
@@ -2828,6 +3330,18 @@
           "form": 1,
           "type": "bool"
         },
+        "ask_num": {
+          "def": false,
+          "hum": "Запитати кількість",
+          "form": 1,
+          "type": "bool"
+        },
+        "add_to_price": {
+          "def": false,
+          "hum": "До загальної вартості",
+          "form": 1,
+          "type": "bool"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -2848,11 +3362,129 @@
           "form": 2,
           "type": "str"
         }
+      }
+    },
+    "matherial_to_reordering": {
+      "register": [
+        {
+          "reg_field": "reordering.cost",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
+      "sum": [
+        "cost"
+      ],
+      "between_up": [
+        "ordering.created_at"
+      ],
+      "hum": "Матеріал до перезамовлення",
+      "rights": "DOC",
+      "message": 0,
+      "fkeys": {
+        "reordering_id": [
+          "reordering",
+          "id"
+        ],
+        "matherial_id": [
+          "matherial",
+          "id"
+        ]
       },
-      "related": [],
-      "registers": []
+      "columns": [
+        "id",
+        "reordering_id",
+        "matherial_id",
+        "number",
+        "price",
+        "cost",
+        "comm",
+        "is_active"
+      ],
+      "w_columns": [
+        "reordering",
+        "matherial"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "reordering_id": {
+          "def": 0,
+          "hum": "Перезамовлення",
+          "form": 2,
+          "type": "int"
+        },
+        "matherial_id": {
+          "def": 0,
+          "hum": "Матеріал",
+          "form": 2,
+          "type": "int"
+        },
+        "number": {
+          "def": 1.0,
+          "hum": "Кількість",
+          "form": 1,
+          "type": "float"
+        },
+        "price": {
+          "def": 0.0,
+          "hum": "Ціна",
+          "form": 1,
+          "type": "float"
+        },
+        "cost": {
+          "def": 0.0,
+          "hum": "Вартість",
+          "form": 1,
+          "type": "float"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "reordering": {
+          "def": "",
+          "hum": "Перезамовлення",
+          "form": 2,
+          "type": "str"
+        },
+        "matherial": {
+          "def": "",
+          "hum": "Матеріал",
+          "form": 2,
+          "type": "str"
+        }
+      }
     },
     "operation_to_ordering": {
+      "sum": [
+        "cost"
+      ],
+      "rz_register": [
+        {
+          "reg_field": "equipment.total",
+          "val_field": [
+            "equipment_cost"
+          ],
+          "func": "+"
+        }
+      ],
       "between_up": [
         "ordering.created_at"
       ],
@@ -2894,6 +3526,7 @@
         "equipment_cost",
         "comm",
         "product_to_ordering_id",
+        "is_done",
         "is_active"
       ],
       "w_columns": [
@@ -2976,6 +3609,12 @@
           "form": 1,
           "type": "int"
         },
+        "is_done": {
+          "def": false,
+          "hum": "Зроблено",
+          "form": 1,
+          "type": "bool"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -3014,20 +3653,12 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
-        {
-          "reg_field": "equipment.total",
-          "val_field": [
-            "equipment_cost"
-          ],
-          "func": "+",
-          "type": "rz_register"
-        }
-      ]
+      }
     },
     "operation_to_product": {
+      "sum": [
+        "cost"
+      ],
       "hum": "Операція до замовлення",
       "rights": "DOC",
       "message": 0,
@@ -3063,6 +3694,8 @@
         "equipment_cost",
         "comm",
         "is_used",
+        "ask_num",
+        "add_to_price",
         "is_active"
       ],
       "w_columns": [
@@ -3150,6 +3783,18 @@
           "form": 1,
           "type": "bool"
         },
+        "ask_num": {
+          "def": false,
+          "hum": "Запитати кількість",
+          "form": 1,
+          "type": "bool"
+        },
+        "add_to_price": {
+          "def": false,
+          "hum": "До загальної вартості",
+          "form": 1,
+          "type": "bool"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -3182,12 +3827,13 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "product_to_product": {
-      "hum": "Операція до замовлення",
+      "sum": [
+        "cost"
+      ],
+      "hum": "Виріб до виробу",
       "rights": "DOC",
       "message": 0,
       "fkeys": {
@@ -3212,6 +3858,8 @@
         "list_name",
         "is_multiselect",
         "is_used",
+        "ask_num",
+        "add_to_price",
         "is_active"
       ],
       "w_columns": [
@@ -3285,6 +3933,18 @@
           "form": 1,
           "type": "bool"
         },
+        "ask_num": {
+          "def": false,
+          "hum": "Запитати кількість",
+          "form": 1,
+          "type": "bool"
+        },
+        "add_to_price": {
+          "def": false,
+          "hum": "До загальної вартості",
+          "form": 1,
+          "type": "bool"
+        },
         "is_active": {
           "def": true,
           "hum": "Діючий",
@@ -3305,11 +3965,45 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "cbox_check": {
+      "sum": [
+        "cash_sum"
+      ],
+      "rz_register": [
+        {
+          "reg_field": "cash.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contragent.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contact.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
       "hum": "Чек",
       "related": [
         {
@@ -3325,8 +4019,20 @@
           "user",
           "id"
         ],
+        "cash_id": [
+          "cash",
+          "id"
+        ],
         "contragent_id": [
           "contragent",
+          "id"
+        ],
+        "contact_id": [
+          "contact",
+          "id"
+        ],
+        "legal_id": [
+          "contact",
           "id"
         ],
         "ordering_id": [
@@ -3339,21 +4045,28 @@
         "name",
         "fs_uid",
         "checkbox_uid",
+        "cash_id",
         "user_id",
         "contragent_id",
-        "document_uid",
+        "contact_id",
+        "legal_id",
         "ordering_id",
         "based_on",
         "created_at",
         "cash_sum",
         "discount",
         "comm",
+        "prepaid",
         "is_cash",
+        "is_realized",
         "is_active"
       ],
       "w_columns": [
+        "cash",
         "user",
         "contragent",
+        "contact",
+        "legal",
         "ordering"
       ],
       "model": {
@@ -3381,6 +4094,12 @@
           "form": 1,
           "type": "str"
         },
+        "cash_id": {
+          "def": 0,
+          "hum": "Каса",
+          "form": 2,
+          "type": "int"
+        },
         "user_id": {
           "def": 0,
           "hum": "Оператор",
@@ -3393,10 +4112,16 @@
           "form": 2,
           "type": "int"
         },
-        "document_uid": {
+        "contact_id": {
           "def": 0,
-          "hum": "Код документа",
-          "form": 0,
+          "hum": "Контакт",
+          "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "int"
         },
         "ordering_id": {
@@ -3406,10 +4131,10 @@
           "type": "int"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
           "form": 0,
-          "type": "int"
+          "type": "str"
         },
         "created_at": {
           "def": "date",
@@ -3435,10 +4160,22 @@
           "form": 1,
           "type": "str"
         },
+        "prepaid": {
+          "def": 0,
+          "hum": "Передплата",
+          "form": 0,
+          "type": "int"
+        },
         "is_cash": {
           "def": true,
           "hum": "Готівка",
           "form": 1,
+          "type": "bool"
+        },
+        "is_realized": {
+          "def": false,
+          "hum": "Проведений",
+          "form": 0,
           "type": "bool"
         },
         "is_active": {
@@ -3455,10 +4192,28 @@
           "form": 2,
           "type": "str"
         },
+        "cash": {
+          "def": "",
+          "hum": "Каса",
+          "form": 2,
+          "type": "str"
+        },
         "contragent": {
           "def": "",
           "hum": "Замовник",
           "form": 2,
+          "type": "str"
+        },
+        "contact": {
+          "def": "",
+          "hum": "Контакт",
+          "form": 2,
+          "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "str"
         },
         "ordering": {
@@ -3467,10 +4222,12 @@
           "form": 0,
           "type": "str"
         }
-      },
-      "registers": []
+      }
     },
     "item_to_cbox_check": {
+      "sum": [
+        "cost"
+      ],
       "hum": "Позиція чеку",
       "rights": "DOC",
       "message": 0,
@@ -3575,11 +4332,45 @@
           "form": 2,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "cash_in": {
+      "rz_register": [
+        {
+          "reg_field": "cash.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contragent.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contact.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "+"
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cash_sum"
+      ],
       "hum": "ПКО",
       "rights": "DOC",
       "message": 1,
@@ -3592,10 +4383,6 @@
           "user",
           "id"
         ],
-        "cbox_check_id": [
-          "cbox_check",
-          "id"
-        ],
         "contragent_id": [
           "contragent",
           "id"
@@ -3603,18 +4390,21 @@
         "contact_id": [
           "contact",
           "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "cash_id",
         "user_id",
         "based_on",
-        "cbox_check_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "created_at",
         "cash_sum",
         "comm",
@@ -3624,20 +4414,14 @@
       "w_columns": [
         "cash",
         "user",
-        "cbox_check",
         "contragent",
-        "contact"
+        "contact",
+        "legal"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -3660,16 +4444,10 @@
           "type": "int"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
           "form": 0,
-          "type": "int"
-        },
-        "cbox_check_id": {
-          "def": 0,
-          "hum": "Чек",
-          "form": 0,
-          "type": "int"
+          "type": "str"
         },
         "contragent_id": {
           "def": 0,
@@ -3681,6 +4459,12 @@
           "def": 0,
           "hum": "Контакт",
           "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "int"
         },
         "created_at": {
@@ -3727,12 +4511,6 @@
           "form": 2,
           "type": "str"
         },
-        "cbox_check": {
-          "def": "",
-          "hum": "Чек",
-          "form": 0,
-          "type": "str"
-        },
         "contragent": {
           "def": "",
           "hum": "Контрагент",
@@ -3744,37 +4522,52 @@
           "hum": "Контакт",
           "form": 2,
           "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
+      }
+    },
+    "cash_out": {
+      "rz_register": [
         {
           "reg_field": "cash.total",
           "val_field": [
             "cash_sum"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
         },
         {
           "reg_field": "contragent.total",
           "val_field": [
             "cash_sum"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
         },
         {
           "reg_field": "contact.total",
           "val_field": [
             "cash_sum"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "cash_sum"
+          ],
+          "func": "-"
         }
-      ]
-    },
-    "cash_out": {
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cash_sum"
+      ],
       "hum": "ВКО",
       "rights": "DOC",
       "message": 1,
@@ -3798,11 +4591,14 @@
         "contact_id": [
           "contact",
           "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "cash_id",
         "user_id",
@@ -3810,6 +4606,7 @@
         "cbox_check_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "created_at",
         "cash_sum",
         "comm",
@@ -3821,18 +4618,13 @@
         "user",
         "cbox_check",
         "contragent",
-        "contact"
+        "contact",
+        "legal"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -3855,10 +4647,10 @@
           "type": "int"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
           "form": 0,
-          "type": "int"
+          "type": "str"
         },
         "cbox_check_id": {
           "def": 0,
@@ -3876,6 +4668,12 @@
           "def": 0,
           "hum": "Контакт",
           "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "int"
         },
         "created_at": {
@@ -3939,48 +4737,173 @@
           "hum": "Контакт",
           "form": 2,
           "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
+      }
+    },
+    "cash_btw": {
+      "rz_register": [
         {
           "reg_field": "cash.total",
           "val_field": [
             "cash_sum"
           ],
-          "func": "-",
-          "type": "rz_register"
+          "func": "-"
         },
         {
-          "reg_field": "contragent.total",
+          "reg_field": "cash2.total",
           "val_field": [
             "cash_sum"
           ],
-          "func": "-",
-          "type": "rz_register"
-        },
-        {
-          "reg_field": "contact.total",
-          "val_field": [
-            "cash_sum"
-          ],
-          "func": "-",
-          "type": "rz_register"
+          "func": "+"
         }
-      ]
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cash_sum"
+      ],
+      "hum": "Переведення між касами",
+      "rights": "DOC",
+      "message": 1,
+      "fkeys": {
+        "cash_id": [
+          "cash",
+          "id"
+        ],
+        "cash2_id": [
+          "cash",
+          "id"
+        ],
+        "user_id": [
+          "user",
+          "id"
+        ]
+      },
+      "columns": [
+        "id",
+        "name",
+        "cash_id",
+        "cash2_id",
+        "user_id",
+        "created_at",
+        "cash_sum",
+        "comm",
+        "is_realized",
+        "is_active"
+      ],
+      "w_columns": [
+        "cash",
+        "cash",
+        "user"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "name": {
+          "def": "ПКО",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "cash_id": {
+          "def": 0,
+          "hum": "З каси",
+          "form": 2,
+          "type": "int"
+        },
+        "cash2_id": {
+          "def": 0,
+          "hum": "До каси",
+          "form": 2,
+          "type": "int"
+        },
+        "user_id": {
+          "def": 0,
+          "hum": "Оператор",
+          "form": 2,
+          "type": "int"
+        },
+        "created_at": {
+          "def": "date",
+          "hum": "Дата",
+          "form": 0,
+          "type": "str"
+        },
+        "cash_sum": {
+          "def": 0.0,
+          "hum": "Сплачено",
+          "form": 1,
+          "type": "float"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "is_realized": {
+          "def": false,
+          "hum": "Проведений",
+          "form": 0,
+          "type": "bool"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "cash": {
+          "def": "",
+          "hum": "З каси",
+          "form": 2,
+          "type": "str"
+        },
+        "cash2": {
+          "def": "",
+          "hum": "До каси",
+          "form": 2,
+          "type": "str"
+        },
+        "user": {
+          "def": "",
+          "hum": "Оператор",
+          "form": 2,
+          "type": "str"
+        }
+      }
     },
     "whs": {
       "hum": "Склад",
       "rights": "CATALOG",
       "message": 1,
-      "fkeys": {},
+      "fkeys": {
+        "department_id": [
+          "department",
+          "id"
+        ]
+      },
       "columns": [
         "id",
         "name",
+        "department_id",
         "comm",
         "is_active"
       ],
-      "w_columns": [],
+      "w_columns": ["department"],
       "model": {
         "id": {
           "def": 0,
@@ -3993,6 +4916,12 @@
           "hum": "Назва",
           "form": 2,
           "type": "str"
+        },
+        "department_id": {
+          "def": 0,
+          "hum": "Відділ",
+          "form": 2,
+          "type": "int"
         },
         "comm": {
           "def": "",
@@ -4007,11 +4936,41 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {
+        "department": {
+          "def": "",
+          "hum": "Відділ",
+          "form": 2,
+          "type": "str"
+        }
+      }
     },
     "whs_in": {
+      "rz_register": [
+        {
+          "reg_field": "contragent.total",
+          "val_field": [
+            "whs_sum",
+            "delivery"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "contact.total",
+          "val_field": [
+            "whs_sum",
+            "delivery"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "whs_sum"
+          ],
+          "func": "+"
+        }
+      ],
       "related": [
         {
           "table": "matherial_to_whs_in",
@@ -4021,18 +4980,25 @@
         {
           "table": "cash_out",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         },
         {
           "table": "cash_in",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         },
         {
           "table": "whs_out",
           "filter": "based_on",
-          "filter_value": "document_uid"
+          "filter_value": "id"
         }
+      ],
+      "between": [
+        "created_at",
+        "contragent_created_at"
+      ],
+      "sum": [
+        "whs_sum"
       ],
       "hum": "Прихідна накладна",
       "rights": "DOC",
@@ -4053,17 +5019,21 @@
         "contact_id": [
           "contact",
           "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "based_on",
         "whs_id",
         "user_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "contragent_doc_uid",
         "contragent_created_at",
         "created_at",
@@ -4077,18 +5047,13 @@
         "whs",
         "user",
         "contragent",
-        "contact"
+        "contact",
+        "legal"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -4099,10 +5064,10 @@
           "type": "str"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
-          "form": 1,
-          "type": "int"
+          "form": 0,
+          "type": "str"
         },
         "whs_id": {
           "def": 0,
@@ -4126,6 +5091,12 @@
           "def": 0,
           "hum": "Контакт",
           "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "int"
         },
         "contragent_doc_uid": {
@@ -4201,36 +5172,51 @@
           "hum": "Контакт",
           "form": 2,
           "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
         }
-      },
-      "registers": [
+      }
+    },
+    "whs_out": {
+      "rz_register": [
         {
           "reg_field": "contragent.total",
           "val_field": [
-            "whs_sum",
-            "delivery"
+            "whs_sum"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
         },
         {
           "reg_field": "contact.total",
           "val_field": [
-            "whs_sum",
-            "delivery"
+            "whs_sum"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
+        },
+        {
+          "reg_field": "legal.total",
+          "val_field": [
+            "whs_sum"
+          ],
+          "func": "-"
         }
-      ]
-    },
-    "whs_out": {
+      ],
       "related": [
         {
           "table": "matherial_to_whs_out",
           "filter": "whs_out_id",
           "filter_value": "id"
         }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "whs_sum"
       ],
       "hum": "Вихідна накладна",
       "rights": "DOC",
@@ -4251,17 +5237,21 @@
         "contact_id": [
           "contact",
           "id"
+        ],
+        "legal_id": [
+          "contact",
+          "id"
         ]
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "based_on",
         "whs_id",
         "user_id",
         "contragent_id",
         "contact_id",
+        "legal_id",
         "created_at",
         "whs_sum",
         "comm",
@@ -4272,18 +5262,13 @@
         "whs",
         "user",
         "contragent",
-        "contact"
+        "contact",
+        "legal"
       ],
       "model": {
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -4294,10 +5279,10 @@
           "type": "str"
         },
         "based_on": {
-          "def": 0,
+          "def": "",
           "hum": "За документом",
           "form": 0,
-          "type": "int"
+          "type": "str"
         },
         "whs_id": {
           "def": 0,
@@ -4321,6 +5306,12 @@
           "def": 0,
           "hum": "Контакт",
           "form": 2,
+          "type": "int"
+        },
+        "legal_id": {
+          "def": 0,
+          "hum": "Юр. особа",
+          "form": 1,
           "type": "int"
         },
         "created_at": {
@@ -4378,29 +5369,329 @@
           "hum": "Контакт",
           "form": 2,
           "type": "str"
+        },
+        "legal": {
+          "def": "",
+          "hum": "Юр. особа",
+          "form": 1,
+          "type": "str"
+        }
+      }
+    },
+    "whs_btw": {
+      "related": [
+        {
+          "table": "matherial_to_whs_btw",
+          "filter": "whs_btw_id",
+          "filter_value": "id"
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "whs_sum"
+      ],
+      "hum": "Переміщення між складами",
+      "rights": "DOC",
+      "message": 1,
+      "fkeys": {
+        "whs_id": [
+          "whs",
+          "id"
+        ],
+        "whs2_id": [
+          "whs",
+          "id"
+        ],
+        "user_id": [
+          "user",
+          "id"
+        ]
+      },
+      "columns": [
+        "id",
+        "name",
+        "based_on",
+        "whs_id",
+        "whs2_id",
+        "user_id",
+        "created_at",
+        "whs_sum",
+        "comm",
+        "is_realized",
+        "is_active"
+      ],
+      "w_columns": [
+        "whs",
+        "whs",
+        "user"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "name": {
+          "def": "ВН",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "based_on": {
+          "def": "",
+          "hum": "За документом",
+          "form": 0,
+          "type": "str"
+        },
+        "whs_id": {
+          "def": 0,
+          "hum": "Зі складу",
+          "form": 2,
+          "type": "int"
+        },
+        "whs2_id": {
+          "def": 0,
+          "hum": "На склад",
+          "form": 2,
+          "type": "int"
+        },
+        "user_id": {
+          "def": 0,
+          "hum": "Оператор",
+          "form": 2,
+          "type": "int"
+        },
+        "created_at": {
+          "def": "date",
+          "hum": "Дата",
+          "form": 0,
+          "type": "str"
+        },
+        "whs_sum": {
+          "def": 0.0,
+          "hum": "Сума",
+          "form": 1,
+          "type": "float"
+        },
+        "comm": {
+          "def": "",
+          "hum": "Коментар",
+          "form": 1,
+          "type": "str"
+        },
+        "is_realized": {
+          "def": false,
+          "hum": "Проведений",
+          "form": 0,
+          "type": "bool"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
         }
       },
-      "registers": [
-        {
-          "reg_field": "contragent.total",
-          "val_field": [
-            "whs_sum"
-          ],
-          "func": "-",
-          "type": "rz_register"
+      "w_model": {
+        "whs": {
+          "def": "",
+          "hum": "Зі складу",
+          "form": 2,
+          "type": "str"
         },
-        {
-          "reg_field": "contact.total",
-          "val_field": [
-            "whs_sum"
-          ],
-          "func": "-",
-          "type": "rz_register"
+        "whs2": {
+          "def": "",
+          "hum": "На склад",
+          "form": 2,
+          "type": "str"
+        },
+        "user": {
+          "def": "",
+          "hum": "Оператор",
+          "form": 2,
+          "type": "str"
         }
-      ]
+      }
+    },
+    "matherial_to_whs_btw": {
+      "hum": "Матеріали до переміщення між складами",
+      "register": [
+        {
+          "reg_field": "whs_btw.whs_sum",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
+      "complex_register": [
+        {
+          "reg_table": "wmc_number",
+          "reg_field": "total",
+          "val_field": "number",
+          "func": "+",
+          "key_fields": [
+            "whs_id",
+            "matherial_id",
+            "color_id"
+          ],
+          "key_values": [
+            "whs_in.whs_id",
+            "matherial_id",
+            "color_id"
+          ]
+        }
+      ],
+      "rights": "DOC",
+      "message": 0,
+      "fkeys": {
+        "matherial_id": [
+          "matherial",
+          "id"
+        ],
+        "whs_btw_id": [
+          "whs_in",
+          "id"
+        ],
+        "color_id": [
+          "color",
+          "id"
+        ]
+      },
+      "columns": [
+        "id",
+        "matherial_id",
+        "whs_btw_id",
+        "number",
+        "price",
+        "cost",
+        "color_id",
+        "is_active"
+      ],
+      "w_columns": [
+        "matherial",
+        "whs_btw",
+        "color"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "matherial_id": {
+          "def": 0,
+          "hum": "Матеріал",
+          "form": 2,
+          "type": "int"
+        },
+        "whs_btw_id": {
+          "def": 0,
+          "hum": "Пер. накладна",
+          "form": 2,
+          "type": "int"
+        },
+        "number": {
+          "def": 1.0,
+          "hum": "Кількість",
+          "form": 1,
+          "type": "float"
+        },
+        "price": {
+          "def": 0.0,
+          "hum": "Вартість",
+          "form": 1,
+          "type": "float"
+        },
+        "cost": {
+          "def": 0.0,
+          "hum": "Сума",
+          "form": 0,
+          "type": "float"
+        },
+        "color_id": {
+          "def": 0,
+          "hum": "Колір",
+          "form": 1,
+          "type": "int"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діючий",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "matherial": {
+          "def": "",
+          "hum": "Матеріал",
+          "form": 2,
+          "type": "str"
+        },
+        "whs_btw": {
+          "def": "",
+          "hum": "Пер. накладна",
+          "form": 2,
+          "type": "str"
+        },
+        "color": {
+          "def": "",
+          "hum": "Колір",
+          "form": 1,
+          "type": "str"
+        }
+      }
     },
     "matherial_to_whs_in": {
       "hum": "Матеріали до приходу на склад",
+      "register": [
+        {
+          "reg_field": "whs_in.whs_sum",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
+      "rz_register": [
+        {
+          "reg_field": "matherial.total",
+          "val_field": [
+            "number"
+          ],
+          "func": "+"
+        },
+        {
+          "reg_field": "color.total",
+          "val_field": [
+            "number"
+          ],
+          "func": "+"
+        }
+      ],
+      "complex_register": [
+        {
+          "reg_table": "wmc_number",
+          "reg_field": "total",
+          "val_field": "number",
+          "func": "+",
+          "key_fields": [
+            "whs_id",
+            "matherial_id",
+            "color_id"
+          ],
+          "key_values": [
+            "whs_in.whs_id",
+            "matherial_id",
+            "color_id"
+          ]
+        }
+      ],
       "rights": "DOC",
       "message": 0,
       "fkeys": {
@@ -4427,6 +5718,7 @@
         "cost",
         "width",
         "length",
+        "pieces",
         "color_id",
         "is_active"
       ],
@@ -4475,7 +5767,7 @@
         "cost": {
           "def": 0.0,
           "hum": "Сума",
-          "form": 0,
+          "form": 1,
           "type": "float"
         },
         "width": {
@@ -4489,6 +5781,12 @@
           "hum": "Довжина, мм",
           "form": 1,
           "type": "float"
+        },
+        "pieces": {
+          "def": 1,
+          "hum": "Штук",
+          "form": 1,
+          "type": "int"
         },
         "color_id": {
           "def": 0,
@@ -4522,45 +5820,53 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
+      }
+    },
+    "matherial_to_whs_out": {
+      "hum": "Матеріали до видачі зі складу",
+      "register": [
+        {
+          "reg_field": "whs_out.whs_sum",
+          "val_field": [
+            "cost"
+          ],
+          "func": "+"
+        }
+      ],
+      "rz_register": [
         {
           "reg_field": "matherial.total",
           "val_field": [
             "number"
           ],
-          "func": "+",
-          "type": "rz_register"
+          "func": "-"
         },
         {
           "reg_field": "color.total",
           "val_field": [
             "number"
           ],
-          "func": "+",
-          "type": "rz_register"
-        },
-        {
-          "reg_field": "whs_in.whs_sum",
-          "val_field": [
-            "cost"
-          ],
-          "func": "+",
-          "type": "register"
-        },
-        {
-          "type": "complex_register",
-          "reg_field": "wmc_number.total",
-          "val_field": [
-            "number"
-          ],
-          "func": "+"
+          "func": "-"
         }
-      ]
-    },
-    "matherial_to_whs_out": {
-      "hum": "Матеріали до видачі зі складу",
+      ],
+      "complex_register": [
+        {
+          "reg_table": "wmc_number",
+          "reg_field": "total",
+          "val_field": "number",
+          "func": "-",
+          "key_fields": [
+            "whs_id",
+            "matherial_id",
+            "color_id"
+          ],
+          "key_values": [
+            "whs_in.whs_id",
+            "matherial_id",
+            "color_id"
+          ]
+        }
+      ],
       "rights": "DOC",
       "message": 0,
       "fkeys": {
@@ -4675,44 +5981,12 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
-        {
-          "reg_field": "matherial.total",
-          "val_field": [
-            "number"
-          ],
-          "func": "-",
-          "type": "rz_register"
-        },
-        {
-          "reg_field": "color.total",
-          "val_field": [
-            "number"
-          ],
-          "func": "-",
-          "type": "rz_register"
-        },
-        {
-          "reg_field": "whs_out.whs_sum",
-          "val_field": [
-            "cost"
-          ],
-          "func": "+",
-          "type": "register"
-        },
-        {
-          "type": "complex_register",
-          "reg_field": "wmc_number.total",
-          "val_field": [
-            "number"
-          ],
-          "func": "-"
-        }
-      ]
+      }
     },
     "matherial_part": {
+      "between": [
+        "created_at"
+      ],
       "hum": "Матеріали за партією",
       "rights": "DOC",
       "message": 0,
@@ -4835,11 +6109,12 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "matherial_part_slice": {
+      "between": [
+        "created_at"
+      ],
       "hum": "Зміни мат. за партією",
       "rights": "DOC",
       "message": 0,
@@ -4937,11 +6212,10 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "project_group": {
+      "filter": [],
       "hum": "Група проекту",
       "rights": "DOC",
       "message": 0,
@@ -5000,9 +6274,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "project_status": {
       "hum": "Етап",
@@ -5042,9 +6314,7 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "project_type": {
       "hum": "Виріб",
@@ -5084,11 +6354,25 @@
           "type": "bool"
         }
       },
-      "w_model": {},
-      "related": [],
-      "registers": []
+      "w_model": {}
     },
     "project": {
+      "find": [
+        {
+          "project": [
+            "info"
+          ],
+          "contragent": [
+            "-search"
+          ],
+          "contact": [
+            "-search"
+          ]
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
       "hum": "Проект",
       "rights": "DOC",
       "message": 1,
@@ -5120,7 +6404,6 @@
       },
       "columns": [
         "id",
-        "document_uid",
         "name",
         "project_group_id",
         "user_id",
@@ -5150,12 +6433,6 @@
         "id": {
           "def": 0,
           "hum": "Номер",
-          "form": 0,
-          "type": "int"
-        },
-        "document_uid": {
-          "def": 0,
-          "hum": "Код документа",
           "form": 0,
           "type": "int"
         },
@@ -5293,9 +6570,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "counter": {
       "hum": "Лічильник",
@@ -5363,11 +6638,24 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "record_to_counter": {
+      "register": [
+        {
+          "reg_field": "counter.total",
+          "val_field": [
+            "number"
+          ],
+          "func": ""
+        }
+      ],
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "number"
+      ],
       "hum": "Запис лічильника",
       "rights": "DOC",
       "message": 0,
@@ -5426,18 +6714,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": [
-        {
-          "reg_field": "counter.total",
-          "val_field": [
-            "number"
-          ],
-          "func": "",
-          "type": "register"
-        }
-      ]
+      }
     },
     "wmc_number": {
       "hum": "Склад наявність",
@@ -5527,9 +6804,7 @@
           "form": 1,
           "type": "str"
         }
-      },
-      "related": [],
-      "registers": []
+      }
     },
     "numbers_to_product": {
       "hum": "Від кількості",
@@ -5604,9 +6879,132 @@
           "form": 0,
           "type": "str"
         }
+      }
+    },
+    "recost": {
+      "between": [
+        "created_at"
+      ],
+      "sum": [
+        "cost",
+        "prev_cost"
+      ],
+      "hum": "Переоцінка",
+      "rights": "DOC",
+      "message": 1,
+      "fkeys": {
+        "whs_in_id": [
+          "whs_in",
+          "id"
+        ],
+        "user_id": [
+          "user",
+          "id"
+        ],
+        "matherial_id": [
+          "matherial",
+          "id"
+        ]
       },
-      "related": [],
-      "registers": []
+      "columns": [
+        "id",
+        "matherial_id",
+        "whs_in_id",
+        "based_on",
+        "name",
+        "created_at",
+        "user_id",
+        "prev_cost",
+        "cost",
+        "is_active"
+      ],
+      "w_columns": [
+        "matherial",
+        "whs_in",
+        "user"
+      ],
+      "model": {
+        "id": {
+          "def": 0,
+          "hum": "Номер",
+          "form": 0,
+          "type": "int"
+        },
+        "matherial_id": {
+          "def": 0,
+          "hum": "Товар",
+          "form": 2,
+          "type": "int"
+        },
+        "whs_in_id": {
+          "def": 0,
+          "hum": "ПН",
+          "form": 1,
+          "type": "int"
+        },
+        "based_on": {
+          "def": "",
+          "hum": "За документом",
+          "form": 0,
+          "type": "str"
+        },
+        "name": {
+          "def": "Переоцінка",
+          "hum": "Назва",
+          "form": 2,
+          "type": "str"
+        },
+        "created_at": {
+          "def": "date",
+          "hum": "Створений",
+          "form": 0,
+          "type": "str"
+        },
+        "user_id": {
+          "def": 0,
+          "hum": "Менеджер",
+          "form": 2,
+          "type": "int"
+        },
+        "prev_cost": {
+          "def": 0.0,
+          "hum": "Попередня вартість",
+          "form": 1,
+          "type": "float"
+        },
+        "cost": {
+          "def": 0.0,
+          "hum": "Нова вартість",
+          "form": 1,
+          "type": "float"
+        },
+        "is_active": {
+          "def": true,
+          "hum": "Діюче",
+          "form": 0,
+          "type": "bool"
+        }
+      },
+      "w_model": {
+        "matherial": {
+          "def": "",
+          "hum": "Товар",
+          "form": 0,
+          "type": "str"
+        },
+        "whs_in": {
+          "def": "",
+          "hum": "ПН",
+          "form": 2,
+          "type": "str"
+        },
+        "user": {
+          "def": "",
+          "hum": "Менеджер",
+          "form": 2,
+          "type": "str"
+        }
+      }
     }
   }
 }

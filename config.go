@@ -14,12 +14,13 @@ var typesTemplates = map[string]string{
 }
 
 var operators = map[string]string{
-	"eq":  "=",
-	"lt":  "<",
-	"gt":  ">",
-	"lte": "<=",
-	"gte": ">=",
-	"ne":  "<>",
+	"eq":   "=",
+	"lt":   "<",
+	"gt":   ">",
+	"lte":  "<=",
+	"gte":  ">=",
+	"ne":   "<>",
+	"like": "LIKE",
 }
 
 const (

@@ -68,6 +68,9 @@ func getFilterHandler(w http.ResponseWriter, r *http.Request) {
 	value := params["value"]
 	mode := r.URL.Query().Get("mode")
 	active := r.URL.Query().Get("active")
+	if operator == "like" {
+		value = "%" + strings.ToLower(value) + "%"
+	}
 	items := &FilteredItems{
 		Items:        Items{name: tableName, mode: mode, active: active},
 		filterColumn: filterColumn,

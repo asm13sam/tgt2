@@ -149,13 +149,20 @@ func (f *FilteredItems) makeQuery() error {
 	if err := f.Items.makeQuery(); err != nil {
 		return err
 	}
-
-	if f.active == "all" {
-		f.query = fmt.Sprintf("%s WHERE %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+	field_type := Md.Models[f.name].Model[f.filterColumn].Type
+	op_str := ""
+	if field_type == "str" {
+		op_str = fmt.Sprintf("LOW(%s.%s) %s ?", f.name, f.filterColumn, operator)
 	} else {
-		f.query = fmt.Sprintf("%s AND %s.%s %s ?", f.query, f.name, f.filterColumn, operator)
+		op_str = fmt.Sprintf("%s.%s %s ?", f.name, f.filterColumn, operator)
 	}
 
+	if f.active == "all" {
+		f.query = fmt.Sprintf("%s WHERE %s", f.query, op_str)
+	} else {
+		f.query = fmt.Sprintf("%s AND %s", f.query, op_str)
+	}
+	fmt.Println(f.query)
 	return nil
 }
 
